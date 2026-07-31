@@ -1,5 +1,5 @@
 const CACHE_NAME = 'voiceclip-shell-v1';
-const SHELL_FILES = ['/', '/index.html', '/manifest.json'];
+const SHELL_FILES = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

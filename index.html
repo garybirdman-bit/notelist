@@ -46,19 +46,22 @@
   .top-chip .t { font-size: 9.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .top-chip .c { font-size: 8px; color: var(--text-dim); margin-top: 2px; }
 
-  #categoriesRow { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 2px 16px 8px; overflow: hidden; flex-shrink: 0; }
+  #categoriesRow { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 2px 16px 8px; overflow-x: auto; overflow-y: hidden; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+  #categoriesRow::-webkit-scrollbar { display: none; }
   #categoriesRow.expanded { flex-wrap: wrap; }
   .pill-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; flex-shrink: 0; }
   .pill-circle { width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent; box-sizing: content-box; }
   .pill-circle.active { border-color: #fff; }
   .pill-label { font-size: 10px; color: var(--text-dim); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  #stagesRow { display: none; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 0 16px 8px; overflow: hidden; flex-shrink: 0; }
+  #stagesRow { display: none; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 0 16px 8px; overflow-x: auto; overflow-y: hidden; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+  #stagesRow::-webkit-scrollbar { display: none; }
   #stagesRow.visible { display: flex; }
   #stagesRow.expanded { flex-wrap: wrap; }
   .stage-pill { font-size: 11px; font-weight: 600; padding: 6px 13px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; cursor: pointer; background: var(--bg-elevated); border: 1.5px solid var(--line); color: var(--text-dim); box-shadow: 1px 2px 4px rgba(46,42,34,0.08); transition: background 0.15s ease, color 0.15s ease; }
   .stage-pill.active { color: #fff; border-color: transparent; box-shadow: 1px 2px 5px rgba(46,42,34,0.18); }
   .stage-add { font-size: 11px; font-weight: 600; padding: 6px 13px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; cursor: pointer; background: transparent; border: 1.5px dashed var(--text-dim); color: var(--text-dim); opacity: 0.85; }
+  .stage-plus { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; cursor: pointer; background: transparent; border: 1.5px dashed var(--text-dim); color: var(--text-dim); opacity: 0.85; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; }
 
   #searchRow { display: flex; align-items: center; justify-content: flex-start; padding: 0 16px 6px; flex-shrink: 0; gap: 8px; }
   #searchInput { display: none; background: none; border: none; border-bottom: 1px solid var(--line); color: var(--text); font-size: 13px; padding: 3px 2px; width: 130px; outline: none; }
@@ -494,6 +497,11 @@
     let html = stages.map((s) => `
       <div class="stage-pick-item">
         <button class="stage-pick-row" data-pick-stage="${s.id}">${s.id === editDraftStage ? '✓ ' : ''}${escapeHtml(s.label)}</button>
+        <button class="stage-pick-del" data-rename-stage="${s.id}" title="Переименовать">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        </button>
         <button class="stage-pick-del" data-del-stage="${s.id}" title="Удалить раздел">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
@@ -543,6 +551,15 @@
     }
     if (activeCategory === id) selectCategory('all');
   }
+  async function renameCategory(id) {
+    const cat = catById(id);
+    if (!cat) return;
+    const next = prompt('Новое название темы:', cat.label);
+    if (next === null) return;
+    const trimmed = next.trim().slice(0, 16);
+    if (!trimmed) return;
+    await updateDoc(doc(db, 'users', currentUser.uid, 'categories', id), { label: trimmed });
+  }
   async function addStage(categoryId, label) {
     const trimmed = label.trim().slice(0, 18);
     if (!trimmed) return null;
@@ -561,6 +578,17 @@
       await updateDoc(doc(db, 'users', currentUser.uid, 'clips', c.id), { stageId: null });
     }
     if (activeStage === stageId) activeStage = 'all';
+  }
+  async function renameStage(categoryId, stageId) {
+    const cat = catById(categoryId);
+    const stage = cat?.stages.find((s) => s.id === stageId);
+    if (!stage) return;
+    const next = prompt('Новое название раздела:', stage.label);
+    if (next === null) return;
+    const trimmed = next.trim().slice(0, 18);
+    if (!trimmed) return;
+    const stages = cat.stages.map((s) => (s.id === stageId ? { ...s, label: trimmed } : s));
+    await updateDoc(doc(db, 'users', currentUser.uid, 'categories', categoryId), { stages });
   }
 
   // ==== РЕНДЕР ====
@@ -598,6 +626,11 @@
           <span><span class="dd-dot" style="background:${cat.color}"></span>${escapeHtml(cat.label)}</span>
           ${activeCategory === cat.id ? '<span>✓</span>' : ''}
         </button>
+        <button class="dd-del" data-action="rename-cat" data-id="${cat.id}" title="Переименовать">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        </button>
         <button class="dd-del" data-action="delete-cat" data-id="${cat.id}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
@@ -610,34 +643,20 @@
 
   function renderCategories() {
     const row = $('categoriesRow');
-    row.className = categoriesExpanded ? 'expanded' : '';
-    const visible = categoriesExpanded ? categories : categories.slice(0, 3);
     let html = `<button class="pill-circle-wrap" data-action="select-cat" data-id="all">
       <div class="pill-circle ${activeCategory === 'all' ? 'active' : ''}" style="background:repeating-conic-gradient(#555 0% 25%, #333 0% 50%)"></div>
       <span class="pill-label">Все</span>
     </button>`;
-    visible.forEach((cat) => {
+    categories.forEach((cat) => {
       html += `<button class="pill-circle-wrap" data-action="select-cat" data-id="${cat.id}">
         <div class="pill-circle ${activeCategory === cat.id ? 'active' : ''}" style="background:${cat.color}"></div>
         <span class="pill-label">${escapeHtml(cat.label)}</span>
       </button>`;
     });
-    if (!categoriesExpanded && categories.length > 3) {
-      html += `<button class="pill-circle-wrap" data-action="expand-cats">
-        <div class="pill-circle" style="background:var(--bg-elevated);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text-dim);">▾</div>
-        <span class="pill-label">ещё ${categories.length - 3}</span>
-      </button>`;
-    }
     html += `<button class="pill-circle-wrap" data-action="new-category">
       <div class="pill-circle" style="border:1.5px dashed var(--text-dim);display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:14px;">+</div>
       <span class="pill-label">своя</span>
     </button>`;
-    if (categoriesExpanded && categories.length > 3) {
-      html += `<button class="pill-circle-wrap" data-action="collapse-cats">
-        <div class="pill-circle" style="background:var(--bg-elevated);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text-dim);transform:rotate(180deg);">▾</div>
-        <span class="pill-label">свернуть</span>
-      </button>`;
-    }
     row.innerHTML = html;
   }
 
@@ -645,21 +664,17 @@
     const row = $('stagesRow');
     const cat = currentCat();
     if (!cat) { row.classList.remove('visible'); row.innerHTML = ''; return; }
-    row.className = 'visible' + (stagesExpanded ? ' expanded' : '');
+    row.className = 'visible';
     const stages = cat.stages || [];
     let html = '';
     if (stages.length > 0) {
       html += `<button class="stage-pill ${activeStage === 'all' ? 'active' : ''}" data-action="select-stage" data-id="all" style="${activeStage === 'all' ? `background:${cat.color};border-color:${cat.color}` : ''}">все разделы</button>`;
     }
-    const visible = stagesExpanded ? stages : stages.slice(0, 2);
-    visible.forEach((s) => {
+    stages.forEach((s) => {
       const isActive = activeStage === s.id;
       html += `<button class="stage-pill ${isActive ? 'active' : ''}" data-action="select-stage" data-id="${s.id}" style="${isActive ? `background:${cat.color};border-color:${cat.color}` : ''}">${escapeHtml(s.label)}</button>`;
     });
-    if (stages.length > 2) {
-      html += `<button class="stage-add" data-action="toggle-stages-expand">${stagesExpanded ? 'свернуть' : `ещё ${stages.length - 2}`}</button>`;
-    }
-    html += `<button class="stage-add" data-action="manage-stages">+ раздел</button>`;
+    html += `<button class="stage-plus" data-action="manage-stages" title="Добавить / изменить разделы">+</button>`;
     row.innerHTML = html;
   }
 
@@ -728,11 +743,18 @@
       : stages.map((s) => `
         <div class="stage-list-row">
           <span style="font-size:13px;">${escapeHtml(s.label)}</span>
-          <button class="stage-list-del" data-action="delete-stage" data-cat="${cat.id}" data-stage="${s.id}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-            </svg>
-          </button>
+          <span style="display:flex; gap:8px;">
+            <button class="stage-list-del" data-action="rename-stage" data-cat="${cat.id}" data-stage="${s.id}" title="Переименовать">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+              </svg>
+            </button>
+            <button class="stage-list-del" data-action="delete-stage" data-cat="${cat.id}" data-stage="${s.id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              </svg>
+            </button>
+          </span>
         </div>
       `).join('');
   }
@@ -759,13 +781,11 @@
 
     switch (action) {
       case 'select-cat': selectCategory(id); $('listDropdown').classList.remove('open'); break;
-      case 'expand-cats': categoriesExpanded = true; renderCategories(); break;
-      case 'collapse-cats': categoriesExpanded = false; renderCategories(); break;
       case 'select-stage': activeStage = id; renderStages(); renderGrid(); break;
-      case 'toggle-stages-expand': stagesExpanded = !stagesExpanded; renderStages(); break;
       case 'manage-stages': renderStagesSheet(); $('stagesSheet').classList.add('open'); break;
       case 'new-category': $('categorySheetInput').value=''; $('categorySheet').classList.add('open'); $('listDropdown').classList.remove('open'); break;
       case 'delete-cat': await deleteCategory(id); break;
+      case 'rename-cat': await renameCategory(id); break;
       case 'quick-copy': case 'card-click': {
         const clip = clips.find((c) => c.id === id);
         if (clip) await handleCardClick(clip);
@@ -779,6 +799,7 @@
       case 'assign-stage': await assignStage(id, btn.dataset.stage); break;
       case 'delete-clip': await deleteClip(id); break;
       case 'delete-stage': await deleteStage(btn.dataset.cat, btn.dataset.stage); renderStagesSheet(); break;
+      case 'rename-stage': await renameStage(btn.dataset.cat, btn.dataset.stage); renderStagesSheet(); break;
       case 'new-clip': openNewClipModal(); break;
     }
   });
@@ -798,6 +819,15 @@
   });
 
   $('stagePickList').addEventListener('click', async (e) => {
+    const renameBtn = e.target.closest('[data-rename-stage]');
+    if (renameBtn) {
+      await renameStage(editDraftCategory, renameBtn.dataset.renameStage);
+      renderStagePickList();
+      const cat = catById(editDraftCategory);
+      const stage = cat?.stages.find((s) => s.id === editDraftStage);
+      if (stage) $('editStageValue').innerHTML = `${escapeHtml(stage.label)} <span id="editStageChevron">⌄</span>`;
+      return;
+    }
     const delBtn = e.target.closest('[data-del-stage]');
     if (delBtn) {
       const stageId = delBtn.dataset.delStage;
