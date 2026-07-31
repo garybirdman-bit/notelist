@@ -115,6 +115,7 @@
     <h1 style="font-size:28px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;color:#4E6B45;margin:0;">Notelist</h1>
     <p>Войди через Google — темы и карточки синхронизируются между телефоном и компьютером.</p>
     <button id="googleBtn">Войти через Google</button>
+    <p id="loginError" style="color:#A6685C; font-size:12px; display:none;"></p>
   </div>
 
   <div id="app">
@@ -197,7 +198,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult,
+    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
     onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import {
@@ -248,9 +249,32 @@
 
   const $ = (id) => document.getElementById(id);
 
-  $('googleBtn').onclick = () => signInWithRedirect(auth, new GoogleAuthProvider());
   $('signOutBtn').onclick = () => signOut(auth);
-  getRedirectResult(auth).catch((e) => console.error('Ошибка входа:', e.message));
+
+  $('googleBtn').onclick = async () => {
+    $('loginError').style.display = 'none';
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (e) {
+      console.error('Ошибка входа (popup):', e.code, e.message);
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request' || e.code === 'auth/popup-closed-by-user') {
+        try {
+          await signInWithRedirect(auth, new GoogleAuthProvider());
+        } catch (e2) {
+          $('loginError').textContent = 'Ошибка входа: ' + e2.message;
+          $('loginError').style.display = 'block';
+        }
+      } else {
+        $('loginError').textContent = 'Ошибка входа: ' + e.message;
+        $('loginError').style.display = 'block';
+      }
+    }
+  };
+  getRedirectResult(auth).catch((e) => {
+    console.error('Ошибка входа (redirect):', e.code, e.message);
+    $('loginError').textContent = 'Ошибка входа: ' + e.message;
+    $('loginError').style.display = 'block';
+  });
 
   async function ensureSeedCategories(uid) {
     const snap = await getDocs(collection(db, 'users', uid, 'categories'));
