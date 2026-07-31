@@ -1,6 +1,6 @@
 {
-  "name": "Notelist",
-  "short_name": "Notelist",
+  "name": "Sendlist",
+  "short_name": "Sendlist",
   "description": "Быстрые ответы по темам и разделам",
   "start_url": ".",
   "scope": ".",

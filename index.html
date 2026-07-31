@@ -39,7 +39,7 @@
   .dd-row button.dd-del { display: flex; align-items: center; background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 8px 12px 8px 4px; }
   .dd-dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; margin-right: 11px; vertical-align: -3px; }
   .dd-add { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; background: none; border: none; border-bottom: 1px solid var(--line); color: var(--text); font-size: 14px; cursor: pointer; }
-  .dd-stage-row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px 10px 39px; background: none; border: none; color: var(--text-dim); font-size: 13px; cursor: pointer; text-align: left; }
+  .dd-stage-row { display: flex; align-items: center; justify-content: space-between; flex: 1; padding: 10px 6px 10px 39px; background: none; border: none; color: var(--text-dim); font-size: 13px; cursor: pointer; text-align: left; }
 
   #statusLine { padding: 8px 16px 2px; min-height: 15px; flex-shrink: 0; font-size: 11px; color: var(--accent); }
 
@@ -103,6 +103,12 @@
   .edit-action-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; display: flex; align-items: center; gap: 4px; font-size: 11px; }
   .edit-action-btn.active { color: var(--accent); }
   .field-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px; border-bottom: 1px solid var(--line); cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; }
+  .pack-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 4px; background: none; border: none; border-bottom: 1px solid var(--line); cursor: pointer; text-align: left; }
+  .pack-option:last-child { border-bottom: none; }
+  .pack-icon { font-size: 26px; flex-shrink: 0; width: 34px; text-align: center; }
+  .pack-text { display: flex; flex-direction: column; gap: 2px; }
+  .pack-title { font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .pack-desc { font-size: 11.5px; color: var(--text-dim); }
   .field-row-label { font-size: 14px; color: var(--text); font-weight: 500; }
   .field-row-value { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font-size: 13px; }
   .field-swatch { width: 20px; height: 20px; border-radius: 50%; display: inline-block; }
@@ -170,6 +176,9 @@
       <button class="edit-action-btn" id="editDupBtn">⧉ Дублировать</button>
     </div>
     <input id="editTitleInput" class="title-input" type="text" placeholder="Название (необязательно)" />
+    <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
+      <button id="insertBracesBtn" type="button" style="background:var(--bg-elevated); border:1px solid var(--line); color:var(--text-dim); font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer;">{ }</button>
+    </div>
     <textarea id="editSheetInput" rows="3" placeholder="Текст ответа… можно с {переменными}"></textarea>
 
     <button class="field-row" id="editThemeRow">
@@ -205,6 +214,34 @@
     <button class="sheet-btn" id="fillSheetCopy">Скопировать</button>
   </div></div>
 
+  <div id="onboardingSheet" class="sheet-overlay"><div class="sheet" style="max-height:85vh;">
+    <div class="sheet-title" id="onboardingTitle">Какая у вас сфера?</div>
+    <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:16px;line-height:1.4;" id="onboardingSubtitle">
+      Подберём готовый набор тем, разделов и примеров карточек под вашу работу — сразу видно, что умеет приложение. Всё можно изменить позже.
+    </div>
+    <button class="pack-option" data-action="choose-pack" data-pack="default">
+      <span class="pack-icon">💼</span>
+      <span class="pack-text">
+        <span class="pack-title" id="packDefaultTitle">Обычный набор</span>
+        <span class="pack-desc" id="packDefaultDesc">Бизнес · Личное · Другое</span>
+      </span>
+    </button>
+    <button class="pack-option" data-action="choose-pack" data-pack="teacher">
+      <span class="pack-icon">🎓</span>
+      <span class="pack-text">
+        <span class="pack-title" id="packTeacherTitle">Репетитор языков</span>
+        <span class="pack-desc" id="packTeacherDesc">Уроки (с разделами) · Оплата · Материалы</span>
+      </span>
+    </button>
+    <button class="pack-option" data-action="choose-pack" data-pack="realtor">
+      <span class="pack-icon">🏠</span>
+      <span class="pack-text">
+        <span class="pack-title" id="packRealtorTitle">Риелтор</span>
+        <span class="pack-desc" id="packRealtorDesc">Объекты по типу (студия/1-спальня…) · Показы · Документы</span>
+      </span>
+    </button>
+  </div></div>
+
   <div id="settingsSheet" class="sheet-overlay"><div class="sheet">
     <div class="sheet-title" id="settingsSheetTitle">Настройки</div>
     <button class="field-row" id="languageRow">
@@ -222,6 +259,20 @@
     <div class="sheet-title" id="newThemeTitle">Новая тема</div>
     <input id="categorySheetInput" type="text" placeholder="Название темы…" />
     <button class="sheet-btn" id="categorySheetSave">Создать</button>
+  </div></div>
+
+  <div id="confirmSheet" class="sheet-overlay"><div class="sheet">
+    <div class="sheet-title" id="confirmSheetTitle">Удалить?</div>
+    <div id="confirmSheetText" style="font-size:14px;color:var(--text-dim);margin-bottom:16px;line-height:1.4;"></div>
+    <button class="delete-btn" id="confirmSheetOk">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+      </svg>
+      <span id="confirmSheetOkLabel">Удалить</span>
+    </button>
+    <button class="sheet-btn" id="confirmSheetCancel" style="background:var(--bg-elevated); color:var(--text); border:1px solid var(--line); margin-top:8px;">
+      <span id="confirmSheetCancelLabel">Отмена</span>
+    </button>
   </div></div>
 
   <div id="renameSheet" class="sheet-overlay"><div class="sheet">
@@ -271,14 +322,130 @@
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   const STALE_DAYS = 60;
-  const NEW_CATEGORY_COLORS = ["#5B7C99", "#9C7A4E", "#6B5B95", "#7A8B5E", "#A6685C", "#5E7A7A"];
-  const DEFAULT_CATEGORIES = [
-    { id: "work", color: "#4E6B45", label: "Работа", order: 0, stages: [
-      { id: "work-inbox", label: "Входящие" }, { id: "work-progress", label: "В работе" }, { id: "work-done", label: "Готово" },
-    ]},
-    { id: "personal", color: "#B5654B", label: "Личное", order: 1, stages: [] },
-    { id: "other", color: "#8A8069", label: "Другое", order: 2, stages: [] },
-  ];
+  const NEW_CATEGORY_COLORS = ["#5B7C99", "#9C7A4E", "#6B5B95", "#7A8B5E", "#A6685C", "#5E7A7A", "#1F6F63", "#C97361"];
+
+  // ==== ПРЕДУСТАНОВЛЕННЫЕ НАБОРЫ ТЕМ (локализованные) ====
+  function buildDefaultPack(lang) {
+    const PACKS = {
+      ru: { c1: "Бизнес", c2: "Личное", c3: "Другое", s1: "Входящие", s2: "В работе", s3: "Готово",
+        t1: "Спасибо за сообщение! Отвечу вам в течение дня, {имя}.",
+        t2: "Можем созвониться в удобное для вас время — дайте знать, когда вам подходит.",
+        t3: "Не могу сейчас говорить, перезвоню позже сегодня." },
+      en: { c1: "Business", c2: "Personal", c3: "Other", s1: "Inbox", s2: "In progress", s3: "Done",
+        t1: "Thanks for reaching out! I'll reply within the day, {name}.",
+        t2: "We can call at a time that works for you — let me know when.",
+        t3: "Can't talk right now, I'll call back later today." },
+      es: { c1: "Negocio", c2: "Personal", c3: "Otro", s1: "Entrada", s2: "En curso", s3: "Hecho",
+        t1: "¡Gracias por escribir! Te respondo hoy mismo, {nombre}.",
+        t2: "Podemos llamarnos cuando te venga bien — dime cuándo.",
+        t3: "No puedo hablar ahora, te llamo más tarde hoy." },
+    };
+    const s = PACKS[lang] || PACKS.ru;
+    return {
+      categories: [
+        { id: "work", color: "#4E6B45", label: s.c1, order: 0, stages: [
+          { id: "work-inbox", label: s.s1 }, { id: "work-progress", label: s.s2 }, { id: "work-done", label: s.s3 },
+        ]},
+        { id: "personal", color: "#B5654B", label: s.c2, order: 1, stages: [] },
+        { id: "other", color: "#8A8069", label: s.c3, order: 2, stages: [] },
+      ],
+      clips: [
+        { id: 'c1', text: s.t1, categoryId: 'work', stageId: 'work-inbox', copyCount: 3, pinned: false, order: 0, updatedAt: new Date().toISOString() },
+        { id: 'c2', text: s.t2, categoryId: 'work', stageId: 'work-progress', copyCount: 5, pinned: true, order: 1, updatedAt: new Date().toISOString() },
+        { id: 'c3', text: s.t3, categoryId: 'personal', stageId: null, copyCount: 1, pinned: false, order: 2, updatedAt: new Date().toISOString() },
+      ],
+    };
+  }
+
+  function buildTeacherPack(lang) {
+    const PACKS = {
+      ru: { lessons: "Уроки", confirm: "Подтверждение", reschedule: "Перенос", homework: "Домашнее задание",
+        payment: "Оплата", materials: "Материалы",
+        t1: "Здравствуйте, {имя}! Напоминаю о нашем уроке сегодня в {время}. Всё в силе? 😊",
+        t2: "Добрый день! Мне нужно перенести наш урок. Когда вам удобно на этой неделе?",
+        t3: "Домашнее задание к следующему уроку — файл выше. Есть вопросы — пишите в любое время!",
+        t4: "Напоминаю про оплату за {месяц} — {сумма}. Реквизиты как обычно 🙂",
+        t5: "Отправляю материалы урока — вложение выше. Повторите первый раздел к следующей встрече." },
+      en: { lessons: "Lessons", confirm: "Confirmation", reschedule: "Reschedule", homework: "Homework",
+        payment: "Payment", materials: "Materials",
+        t1: "Hi {name}! Just a reminder about our lesson today at {time}. Still good? 😊",
+        t2: "Hi! I need to reschedule our lesson. What works for you this week?",
+        t3: "Homework for the next lesson — attached above. Any questions, message me anytime!",
+        t4: "Friendly reminder about payment for {month} — {amount}. Same details as usual 🙂",
+        t5: "Sending today's lesson materials — attached above. Please review section 1 before next time." },
+      es: { lessons: "Clases", confirm: "Confirmación", reschedule: "Reprogramar", homework: "Tarea",
+        payment: "Pago", materials: "Materiales",
+        t1: "¡Hola {nombre}! Te recuerdo nuestra clase de hoy a las {hora}. ¿Sigue en pie? 😊",
+        t2: "¡Hola! Necesito reprogramar nuestra clase. ¿Qué día te viene bien esta semana?",
+        t3: "Tarea para la próxima clase — archivo arriba. ¡Cualquier duda, escríbeme cuando quieras!",
+        t4: "Te recuerdo el pago de {mes} — {importe}. Los datos de siempre 🙂",
+        t5: "Te envío los materiales de la clase — archivo arriba. Repasa la sección 1 antes de la próxima." },
+    };
+    const s = PACKS[lang] || PACKS.ru;
+    return {
+      categories: [
+        { id: 'tp-lessons', color: '#4E6B45', label: s.lessons, order: 0, stages: [
+          { id: 'tp-confirm', label: s.confirm }, { id: 'tp-reschedule', label: s.reschedule }, { id: 'tp-homework', label: s.homework },
+        ]},
+        { id: 'tp-payment', color: '#B5654B', label: s.payment, order: 1, stages: [] },
+        { id: 'tp-materials', color: '#8A8069', label: s.materials, order: 2, stages: [] },
+      ],
+      clips: [
+        { id: 'tpc1', text: s.t1, categoryId: 'tp-lessons', stageId: 'tp-confirm', copyCount: 4, pinned: true, order: 0, updatedAt: new Date().toISOString() },
+        { id: 'tpc2', text: s.t2, categoryId: 'tp-lessons', stageId: 'tp-reschedule', copyCount: 1, pinned: false, order: 1, updatedAt: new Date().toISOString() },
+        { id: 'tpc3', text: s.t3, categoryId: 'tp-lessons', stageId: 'tp-homework', copyCount: 3, pinned: false, order: 2, updatedAt: new Date().toISOString() },
+        { id: 'tpc4', text: s.t4, categoryId: 'tp-payment', stageId: null, copyCount: 2, pinned: false, order: 3, updatedAt: new Date().toISOString() },
+        { id: 'tpc5', text: s.t5, categoryId: 'tp-materials', stageId: null, copyCount: 2, pinned: false, order: 4, updatedAt: new Date().toISOString() },
+      ],
+    };
+  }
+
+  function buildRealtorPack(lang) {
+    const PACKS = {
+      ru: { objects: "Объекты", studio: "Студия", oneBed: "1-спальня", twoBed: "2-спальни",
+        showings: "Показы", documents: "Документы",
+        t1: "Отправляю фото и планировку студии на {адрес} — вложение выше. Площадь {метраж} м².",
+        t2: "Вот подборка однокомнатных вариантов в районе {район} — смотрите вложение.",
+        t3: "Подборка двухкомнатных квартир по вашему запросу — фото и цены во вложении.",
+        t4: "Добрый день, {имя}! Подтверждаю показ на {адрес} завтра в {время}. Жду у подъезда.",
+        t5: "Спасибо, что посмотрели квартиру! Появятся вопросы или решите двигаться дальше — я на связи.",
+        t6: "Высылаю образец договора для ознакомления, оригинал подпишем при встрече." },
+      en: { objects: "Listings", studio: "Studio", oneBed: "1-Bedroom", twoBed: "2-Bedroom",
+        showings: "Showings", documents: "Documents",
+        t1: "Sending photos and floor plan for the studio at {address} — attached above. {size} sq.m.",
+        t2: "Here's a selection of 1-bedroom options in {area} — see attachment.",
+        t3: "A selection of 2-bedroom apartments matching your request — photos and prices attached.",
+        t4: "Hi {name}! Confirming the showing at {address} tomorrow at {time}. I'll wait by the entrance.",
+        t5: "Thanks for viewing the apartment! Any questions, or ready to move forward — I'm here.",
+        t6: "Sending a sample contract for review, we'll sign the original when we meet." },
+      es: { objects: "Propiedades", studio: "Estudio", oneBed: "1 habitación", twoBed: "2 habitaciones",
+        showings: "Visitas", documents: "Documentos",
+        t1: "Te envío fotos y plano del estudio en {dirección} — archivo arriba. {metros} m².",
+        t2: "Aquí tienes opciones de 1 habitación en {zona} — mira el archivo adjunto.",
+        t3: "Selección de pisos de 2 habitaciones según tu búsqueda — fotos y precios adjuntos.",
+        t4: "¡Hola {nombre}! Confirmo la visita en {dirección} mañana a las {hora}. Te espero en la entrada.",
+        t5: "¡Gracias por ver el piso! Si tienes dudas o quieres avanzar, aquí estoy.",
+        t6: "Te envío un modelo de contrato para revisar, firmamos el original cuando nos veamos." },
+    };
+    const s = PACKS[lang] || PACKS.ru;
+    return {
+      categories: [
+        { id: 'rp-objects', color: '#A6685C', label: s.objects, order: 0, stages: [
+          { id: 'rp-studio', label: s.studio }, { id: 'rp-onebed', label: s.oneBed }, { id: 'rp-twobed', label: s.twoBed },
+        ]},
+        { id: 'rp-showings', color: '#5B7C99', label: s.showings, order: 1, stages: [] },
+        { id: 'rp-documents', color: '#8A8069', label: s.documents, order: 2, stages: [] },
+      ],
+      clips: [
+        { id: 'rpc1', text: s.t1, categoryId: 'rp-objects', stageId: 'rp-studio', copyCount: 2, pinned: false, order: 0, updatedAt: new Date().toISOString() },
+        { id: 'rpc2', text: s.t2, categoryId: 'rp-objects', stageId: 'rp-onebed', copyCount: 3, pinned: false, order: 1, updatedAt: new Date().toISOString() },
+        { id: 'rpc3', text: s.t3, categoryId: 'rp-objects', stageId: 'rp-twobed', copyCount: 1, pinned: false, order: 2, updatedAt: new Date().toISOString() },
+        { id: 'rpc4', text: s.t4, categoryId: 'rp-showings', stageId: null, copyCount: 4, pinned: true, order: 3, updatedAt: new Date().toISOString() },
+        { id: 'rpc5', text: s.t5, categoryId: 'rp-showings', stageId: null, copyCount: 2, pinned: false, order: 4, updatedAt: new Date().toISOString() },
+        { id: 'rpc6', text: s.t6, categoryId: 'rp-documents', stageId: null, copyCount: 1, pinned: false, order: 5, updatedAt: new Date().toISOString() },
+      ],
+    };
+  }
 
   const I18N = {
     ru: {
@@ -290,6 +457,10 @@
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
       themeNamePlaceholder: "Название темы…", create: "Создать", renameTitle: "Переименовать",
       renameThemeTitle: "Переименовать тему", renameStageTitle: "Переименовать раздел", namePlaceholder: "Название…",
+      confirmTitle: "Удалить?", confirmOk: "Удалить", confirmCancel: "Отмена",
+      confirmDeleteTheme: "Тема удалится вместе со всеми карточками внутри неё. Это действие нельзя отменить.",
+      confirmDeleteStage: "Раздел удалится. Карточки внутри останутся, просто без раздела. Отменить нельзя.",
+      confirmDeleteClip: "Карточка удалится безвозвратно. Отменить нельзя.",
       colorLabel: "Цвет", sectionsTitle: "Разделы", newSectionPlaceholder: "Новый раздел…",
       noSectionsShort: "Разделов пока нет", noSectionsLong: "У этой темы пока нет разделов",
       all: "Все", own: "своя", allSections: "все разделы", addChangeSections: "Добавить / изменить разделы",
@@ -298,6 +469,11 @@
       addedOk: "Добавлено ✓", savedOk: "Сохранено ✓", duplicateCreated: "Дубликат создан — отредактируй",
       markedFresh: "Отмечено как актуальное", keepOneTheme: "Должна остаться хотя бы одна тема",
       notSelected: "не выбран", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Выйти",
+      onboardingTitle: "Какая у вас сфера?",
+      onboardingSubtitle: "Подберём готовый набор тем, разделов и примеров карточек под вашу работу — сразу видно, что умеет приложение. Всё можно изменить позже.",
+      packDefaultTitle: "Обычный набор", packDefaultDesc: "Бизнес · Личное · Другое",
+      packTeacherTitle: "Репетитор языков", packTeacherDesc: "Уроки (с разделами) · Оплата · Материалы",
+      packRealtorTitle: "Риелтор", packRealtorDesc: "Объекты по типу (студия/1-спальня…) · Показы · Документы",
     },
     en: {
       settingsTitle: "Settings", viewToggleTitle: "View: grid/list", allThemes: "All themes",
@@ -308,6 +484,10 @@
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
       themeNamePlaceholder: "Theme name…", create: "Create", renameTitle: "Rename",
       renameThemeTitle: "Rename theme", renameStageTitle: "Rename section", namePlaceholder: "Name…",
+      confirmTitle: "Delete?", confirmOk: "Delete", confirmCancel: "Cancel",
+      confirmDeleteTheme: "The theme will be deleted along with all cards inside it. This can't be undone.",
+      confirmDeleteStage: "The section will be deleted. Cards inside will remain, just without a section. Can't be undone.",
+      confirmDeleteClip: "The card will be permanently deleted. Can't be undone.",
       colorLabel: "Color", sectionsTitle: "Sections", newSectionPlaceholder: "New section…",
       noSectionsShort: "No sections yet", noSectionsLong: "This theme has no sections yet",
       all: "All", own: "custom", allSections: "all sections", addChangeSections: "Add / edit sections",
@@ -316,6 +496,11 @@
       addedOk: "Added ✓", savedOk: "Saved ✓", duplicateCreated: "Duplicate created — edit it",
       markedFresh: "Marked as up to date", keepOneTheme: "At least one theme must remain",
       notSelected: "not selected", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Sign out",
+      onboardingTitle: "What's your field?",
+      onboardingSubtitle: "We'll set up ready-made themes, sections, and example cards for your work — so you instantly see what the app can do. You can change everything later.",
+      packDefaultTitle: "Generic set", packDefaultDesc: "Business · Personal · Other",
+      packTeacherTitle: "Language teacher", packTeacherDesc: "Lessons (with sections) · Payment · Materials",
+      packRealtorTitle: "Realtor", packRealtorDesc: "Listings by type (studio/1-bed…) · Showings · Documents",
     },
     es: {
       settingsTitle: "Ajustes", viewToggleTitle: "Vista: cuadrícula/lista", allThemes: "Todos los temas",
@@ -326,6 +511,10 @@
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
       themeNamePlaceholder: "Nombre del tema…", create: "Crear", renameTitle: "Renombrar",
       renameThemeTitle: "Renombrar tema", renameStageTitle: "Renombrar sección", namePlaceholder: "Nombre…",
+      confirmTitle: "¿Eliminar?", confirmOk: "Eliminar", confirmCancel: "Cancelar",
+      confirmDeleteTheme: "El tema se eliminará junto con todas las tarjetas que contiene. No se puede deshacer.",
+      confirmDeleteStage: "La sección se eliminará. Las tarjetas dentro permanecerán, solo sin sección. No se puede deshacer.",
+      confirmDeleteClip: "La tarjeta se eliminará permanentemente. No se puede deshacer.",
       colorLabel: "Color", sectionsTitle: "Secciones", newSectionPlaceholder: "Nueva sección…",
       noSectionsShort: "Aún no hay secciones", noSectionsLong: "Este tema aún no tiene secciones",
       all: "Todos", own: "propio", allSections: "todas las secciones", addChangeSections: "Añadir / editar secciones",
@@ -334,6 +523,11 @@
       addedOk: "Añadido ✓", savedOk: "Guardado ✓", duplicateCreated: "Duplicado creado — edítalo",
       markedFresh: "Marcado como actualizado", keepOneTheme: "Debe quedar al menos un tema",
       notSelected: "no seleccionado", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Cerrar sesión",
+      onboardingTitle: "¿Cuál es tu campo?",
+      onboardingSubtitle: "Prepararemos temas, secciones y tarjetas de ejemplo para tu trabajo — verás al instante lo que la app puede hacer. Todo se puede cambiar después.",
+      packDefaultTitle: "Conjunto genérico", packDefaultDesc: "Negocio · Personal · Otro",
+      packTeacherTitle: "Profesor de idiomas", packTeacherDesc: "Clases (con secciones) · Pago · Materiales",
+      packRealtorTitle: "Agente inmobiliario", packRealtorDesc: "Propiedades por tipo (estudio/1 hab…) · Visitas · Documentos",
     },
   };
   let currentLang = localStorage.getItem('lang') || 'ru';
@@ -383,12 +577,23 @@
     $('loginError').style.display = 'block';
   });
 
-  async function ensureSeedCategories(uid) {
+  async function hasAnyCategories(uid) {
     const snap = await getDocs(collection(db, 'users', uid, 'categories'));
-    if (!snap.empty) return;
-    for (const cat of DEFAULT_CATEGORIES) {
-      await setDoc(doc(db, 'users', uid, 'categories', cat.id), cat);
+    return !snap.empty;
+  }
+
+  async function applyPack(packId) {
+    const pack = packId === 'teacher' ? buildTeacherPack(currentLang)
+      : packId === 'realtor' ? buildRealtorPack(currentLang)
+      : buildDefaultPack(currentLang);
+    for (const cat of pack.categories) {
+      await setDoc(doc(db, 'users', currentUser.uid, 'categories', cat.id), cat);
     }
+    for (const clip of pack.clips) {
+      const { id, ...rest } = clip;
+      await setDoc(doc(db, 'users', currentUser.uid, 'clips', id), rest);
+    }
+    $('onboardingSheet').classList.remove('open');
   }
 
   function subscribe(uid) {
@@ -409,8 +614,9 @@
     if (user) {
       $('loginScreen').classList.remove('visible');
       $('app').classList.add('visible');
-      await ensureSeedCategories(user.uid);
+      const hasData = await hasAnyCategories(user.uid);
       subscribe(user.uid);
+      if (!hasData) $('onboardingSheet').classList.add('open');
     } else {
       $('loginScreen').classList.add('visible');
       $('app').classList.remove('visible');
@@ -662,6 +868,13 @@
     if (activeCategory === id) selectCategory('all');
   }
   let renameTarget = null; // { type: 'category'|'stage', id, categoryId }
+  let confirmCallback = null;
+
+  function askConfirm(message, onYes) {
+    confirmCallback = onYes;
+    $('confirmSheetText').textContent = message;
+    $('confirmSheet').classList.add('open');
+  }
 
   function renameCategory(id) {
     const cat = catById(id);
@@ -746,6 +959,16 @@
     $('renameSheetInput').placeholder = t('namePlaceholder');
     $('renameColorLabel').textContent = t('colorLabel');
     $('renameSheetSave').textContent = t('save');
+    $('confirmSheetOkLabel').textContent = t('confirmOk');
+    $('confirmSheetCancelLabel').textContent = t('confirmCancel');
+    $('onboardingTitle').textContent = t('onboardingTitle');
+    $('onboardingSubtitle').textContent = t('onboardingSubtitle');
+    $('packDefaultTitle').textContent = t('packDefaultTitle');
+    $('packDefaultDesc').textContent = t('packDefaultDesc');
+    $('packTeacherTitle').textContent = t('packTeacherTitle');
+    $('packTeacherDesc').textContent = t('packTeacherDesc');
+    $('packRealtorTitle').textContent = t('packRealtorTitle');
+    $('packRealtorDesc').textContent = t('packRealtorDesc');
     $('stagesSheetInput').placeholder = t('newSectionPlaceholder');
     $('signOutLabel').textContent = t('signOut');
   }
@@ -799,10 +1022,22 @@
       </div>`;
       (cat.stages || []).forEach((s) => {
         const isActiveStage = isActiveCat && activeStage === s.id;
-        html += `<button class="dd-stage-row" data-action="select-cat-stage" data-cat="${cat.id}" data-stage="${s.id}">
-          <span>${escapeHtml(s.label)}</span>
-          ${isActiveStage ? '<span>✓</span>' : ''}
-        </button>`;
+        html += `<div class="dd-row">
+          <button class="dd-stage-row" data-action="select-cat-stage" data-cat="${cat.id}" data-stage="${s.id}">
+            <span>${escapeHtml(s.label)}</span>
+            ${isActiveStage ? '<span>✓</span>' : ''}
+          </button>
+          <button class="dd-del" data-action="rename-stage" data-cat="${cat.id}" data-stage="${s.id}" title="${t('renameTitle')}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+            </svg>
+          </button>
+          <button class="dd-del" data-action="delete-stage" data-cat="${cat.id}" data-stage="${s.id}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </button>
+        </div>`;
       });
     });
     dd.innerHTML = html;
@@ -975,6 +1210,7 @@
     const id = btn.dataset.id;
 
     switch (action) {
+      case 'choose-pack': await applyPack(btn.dataset.pack); break;
       case 'select-cat': selectCategory(id); $('listDropdown').classList.remove('open'); break;
       case 'select-cat-stage': {
         activeCategory = btn.dataset.cat;
@@ -986,7 +1222,7 @@
       case 'select-stage': activeStage = id; renderStages(); renderGrid(); break;
       case 'manage-stages': renderStagesSheet(); $('stagesSheet').classList.add('open'); break;
       case 'new-category': $('categorySheetInput').value=''; $('categorySheet').classList.add('open'); $('listDropdown').classList.remove('open'); break;
-      case 'delete-cat': await deleteCategory(id); break;
+      case 'delete-cat': askConfirm(t('confirmDeleteTheme'), async () => { await deleteCategory(id); renderDropdown(); }); break;
       case 'rename-cat': renameCategory(id); break;
       case 'quick-copy': case 'card-click': {
         const clip = clips.find((c) => c.id === id);
@@ -999,13 +1235,23 @@
       case 'mark-fresh': await markRefreshed(id); break;
       case 'assign-cat': await assignCategory(id, btn.dataset.cat); break;
       case 'assign-stage': await assignStage(id, btn.dataset.stage); break;
-      case 'delete-clip': await deleteClip(id); break;
-      case 'delete-stage': await deleteStage(btn.dataset.cat, btn.dataset.stage); renderStagesSheet(); break;
+      case 'delete-clip': askConfirm(t('confirmDeleteClip'), async () => { await deleteClip(id); }); break;
+      case 'delete-stage': askConfirm(t('confirmDeleteStage'), async () => { await deleteStage(btn.dataset.cat, btn.dataset.stage); renderStagesSheet(); renderDropdown(); }); break;
       case 'rename-stage': renameStage(btn.dataset.cat, btn.dataset.stage); break;
       case 'new-clip': openNewClipModal(); break;
     }
   });
 
+  $('insertBracesBtn').onclick = () => {
+    const ta = $('editSheetInput');
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const selected = ta.value.slice(start, end);
+    const insert = `{${selected}}`;
+    ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
+    ta.focus();
+    const cursorPos = selected ? start + insert.length - 1 : start + 1;
+    ta.setSelectionRange(cursorPos, cursorPos);
+  };
   $('editSheetSave').onclick = saveEditSheet;
   $('editSheet').addEventListener('click', (e) => { if (e.target.id === 'editSheet') $('editSheet').classList.remove('open'); });
 
@@ -1029,19 +1275,21 @@
     const delBtn = e.target.closest('[data-del-stage]');
     if (delBtn) {
       const stageId = delBtn.dataset.delStage;
-      const cat = catById(editDraftCategory);
-      if (cat) cat.stages = (cat.stages || []).filter((s) => s.id !== stageId); // мгновенно локально
-      if (editDraftStage === stageId) editDraftStage = null;
-      renderStagePickList();
-      const stages = cat?.stages || [];
-      if (stages.length === 0) {
-        $('stagePickList').style.display = 'none';
-        $('editStageRow').style.display = 'none';
-      } else {
-        const stage = stages.find((s) => s.id === editDraftStage);
-        $('editStageValue').innerHTML = `${escapeHtml(stage?.label || t('notSelected'))} <span id="editStageChevron">⌄</span>`;
-      }
-      await deleteStage(editDraftCategory, stageId); // подтверждаем на сервере
+      askConfirm(t('confirmDeleteStage'), async () => {
+        const cat = catById(editDraftCategory);
+        if (cat) cat.stages = (cat.stages || []).filter((s) => s.id !== stageId); // мгновенно локально
+        if (editDraftStage === stageId) editDraftStage = null;
+        renderStagePickList();
+        const stages = cat?.stages || [];
+        if (stages.length === 0) {
+          $('stagePickList').style.display = 'none';
+          $('editStageRow').style.display = 'none';
+        } else {
+          const stage = stages.find((s) => s.id === editDraftStage);
+          $('editStageValue').innerHTML = `${escapeHtml(stage?.label || t('notSelected'))} <span id="editStageChevron">⌄</span>`;
+        }
+        await deleteStage(editDraftCategory, stageId); // подтверждаем на сервере
+      });
       return;
     }
     const addBtn = e.target.closest('#newStageInlineAdd');
@@ -1085,8 +1333,10 @@
   };
   $('editDeleteBtn').onclick = () => {
     if (editingClipId === 'new') return;
-    deleteClip(editingClipId);
-    $('editSheet').classList.remove('open');
+    askConfirm(t('confirmDeleteClip'), async () => {
+      await deleteClip(editingClipId);
+      $('editSheet').classList.remove('open');
+    });
   };
 
   $('fillSheetCopy').onclick = async () => {
@@ -1139,6 +1389,18 @@
   $('renameSheetSave').onclick = applyRename;
   $('renameSheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRename(); });
   $('renameSheet').addEventListener('click', (e) => { if (e.target.id === 'renameSheet') { $('renameSheet').classList.remove('open'); renameTarget = null; } });
+
+  $('confirmSheetOk').onclick = async () => {
+    const cb = confirmCallback;
+    confirmCallback = null;
+    $('confirmSheet').classList.remove('open');
+    if (cb) await cb();
+  };
+  $('confirmSheetCancel').onclick = () => {
+    confirmCallback = null;
+    $('confirmSheet').classList.remove('open');
+  };
+  $('confirmSheet').addEventListener('click', (e) => { if (e.target.id === 'confirmSheet') { confirmCallback = null; $('confirmSheet').classList.remove('open'); } });
 
   $('stagesSheetAdd').onclick = async () => {
     const cat = currentCat();
