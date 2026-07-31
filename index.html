@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#F5EFE4" />
+<meta name="theme-color" content="#F4E8D0" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <title>Notelist</title>
 <style>
   :root {
-    --bg: #F5EFE4; --bg-elevated: #FFFFFF; --line: #E0D6C3;
+    --bg: #F4E8D0; --bg-elevated: #FFFFFF; --line: #E0D6C3;
     --text: #2E2A22; --text-dim: #8A8069; --accent: #4E6B45; --warn: #B5654B;
     --card: #4E6B45;
   }
@@ -25,20 +25,21 @@
   #app { display: none; flex: 1; flex-direction: column; overflow: hidden; position: relative; max-width: 480px; margin: 0 auto; width: 100%; }
   #app.visible { display: flex; }
 
-  #splashScreen { position: fixed; inset: 0; background: #FBF6EC; display: flex; align-items: center; justify-content: center; z-index: 999; transition: opacity 0.4s ease; }
+  #splashScreen { position: fixed; inset: 0; background: #F4E8D0; display: flex; align-items: center; justify-content: center; z-index: 999; transition: opacity 0.4s ease; }
   #splashScreen.hidden { opacity: 0; pointer-events: none; }
   #splashScreen span { font-size: 34px; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; color: #4E6B45; letter-spacing: 0.01em; }
-  #topBar { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 0; flex-shrink: 0; position: relative; }
-  #themeLabel { display: flex; align-items: center; gap: 5px; background: none; border: none; color: var(--text); font-size: 17px; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; cursor: pointer; padding: 2px; }
-  #signOutBtn { background: none; border: none; color: var(--accent); font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 6px 4px; opacity: 0.85; }
+  #topBar { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 16px 16px 0; flex-shrink: 0; position: relative; gap: 4px; }
+  #settingsBtn { display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; justify-self: start; }
+  #themeLabel { display: flex; align-items: center; justify-content: center; gap: 5px; background: none; border: none; color: var(--text); font-size: 19px; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; cursor: pointer; padding: 2px; text-align: center; }
 
-  #listDropdown { display: none; position: absolute; top: 30px; left: 12px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; z-index: 40; min-width: 200px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+  #listDropdown { display: none; position: absolute; top: 46px; left: 0; right: 0; background: var(--bg-elevated); border-bottom: 1px solid var(--line); border-radius: 0 0 16px 16px; overflow: hidden; z-index: 40; width: 100%; max-height: 60vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
   #listDropdown.open { display: block; }
   .dd-row { display: flex; align-items: center; }
-  .dd-row button.dd-main { display: flex; align-items: center; justify-content: space-between; flex: 1; padding: 11px 6px 11px 14px; background: none; border: none; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; }
+  .dd-row button.dd-main { display: flex; align-items: center; justify-content: space-between; flex: 1; padding: 13px 6px 13px 14px; background: none; border: none; color: var(--text); font-size: 14px; cursor: pointer; text-align: left; }
   .dd-row button.dd-del { display: flex; align-items: center; background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 8px 12px 8px 4px; }
-  .dd-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 10px; vertical-align: -2px; }
-  .dd-add { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; background: none; border: none; border-bottom: 1px solid var(--line); color: var(--text); font-size: 13px; cursor: pointer; }
+  .dd-dot { width: 15px; height: 15px; border-radius: 50%; display: inline-block; margin-right: 11px; vertical-align: -3px; }
+  .dd-add { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; background: none; border: none; border-bottom: 1px solid var(--line); color: var(--text); font-size: 14px; cursor: pointer; }
+  .dd-stage-row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px 10px 39px; background: none; border: none; color: var(--text-dim); font-size: 13px; cursor: pointer; text-align: left; }
 
   #statusLine { padding: 8px 16px 2px; min-height: 15px; flex-shrink: 0; font-size: 11px; color: var(--accent); }
 
@@ -67,12 +68,17 @@
   #searchInput { display: none; background: none; border: none; border-bottom: 1px solid var(--line); color: var(--text); font-size: 13px; padding: 3px 2px; width: 130px; outline: none; }
   #searchInput.open { display: block; }
   #searchBtn { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; display: flex; }
+  #viewToggleBtn { display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; justify-self: end; }
 
   #grid { flex: 1; overflow-y: auto; padding: 4px 12px 20px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; align-content: start; }
+  #grid.list-view { grid-template-columns: 1fr; }
+  #grid.list-view .clip-card { height: 140px; }
   .empty-msg { grid-column: 1 / -1; text-align: center; color: var(--text-dim); font-size: 12px; margin-top: 30px; }
   .add-tile { border: 1.5px dashed var(--text-dim); border-radius: 16px; background: none; color: var(--text-dim); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 112px; gap: 4px; }
 
   .clip-card { border-radius: 16px; padding: 13px 14px 12px; cursor: pointer; display: flex; flex-direction: column; height: 112px; position: relative; box-shadow: 3px 4px 8px rgba(46,42,34,0.22); }
+  .clip-card.drag-ghost { opacity: 0.25; }
+  .clip-card.drag-chosen { box-shadow: 4px 10px 22px rgba(46,42,34,0.4); transform: scale(1.04) rotate(-1.5deg); }
   .clip-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .clip-tagname { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: none; }
   .clip-right { display: flex; align-items: center; gap: 6px; }
@@ -87,7 +93,7 @@
   .sheet { background: var(--bg-elevated); width: 100%; border-radius: 16px 16px 0 0; padding: 18px; border-top: 1px solid var(--line); max-height: 70vh; display: flex; flex-direction: column; }
   .sheet-title { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
   .sheet textarea, .sheet input[type=text] { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; padding: 10px 12px; outline: none; resize: none; margin-bottom: 10px; font-family: inherit; }
-  .sheet-btn { width: 100%; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; padding: 10px 0; cursor: pointer; }
+  .sheet-btn { width: 100%; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; padding: 10px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
   .stage-list-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 4px; border-bottom: 1px solid var(--line); }
   .stage-list-del { background: none; border: none; color: #e08585; cursor: pointer; padding: 4px; }
   .fill-preview { font-size: 11px; color: var(--text-dim); margin-top: 4px; margin-bottom: 14px; line-height: 1.4; background: var(--bg); border-radius: 8px; padding: 8px 10px; }
@@ -123,8 +129,19 @@
 
   <div id="app">
     <div id="topBar">
+      <button id="settingsBtn" title="Настройки">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
       <button id="themeLabel">Все темы <span id="themeChevron">▾</span></button>
-      <button id="signOutBtn">выйти</button>
+      <button id="viewToggleBtn" title="Вид: сетка/список">
+        <svg id="viewToggleIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>
+        </svg>
+      </button>
       <div id="listDropdown"></div>
     </div>
 
@@ -156,37 +173,65 @@
     <textarea id="editSheetInput" rows="3" placeholder="Текст ответа… можно с {переменными}"></textarea>
 
     <button class="field-row" id="editThemeRow">
-      <span class="field-row-label">Тема</span>
+      <span class="field-row-label" id="themeFieldLabel">Тема</span>
       <span class="field-row-value" id="editThemeValue">— <span id="editThemeChevron">›</span></span>
     </button>
     <div class="palette-grid" id="colorPickGrid" style="display:none;"></div>
 
     <button class="field-row" id="editStageRow" style="display:none;">
-      <span class="field-row-label">Раздел</span>
+      <span class="field-row-label" id="sectionFieldLabel">Раздел</span>
       <span class="field-row-value" id="editStageValue">— <span id="editStageChevron">›</span></span>
     </button>
     <div id="stagePickList" style="display:none;"></div>
 
-    <button class="sheet-btn" id="editSheetSave" style="margin-top:14px;">Сохранить</button>
+    <button class="sheet-btn" id="editSheetSave" style="margin-top:14px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span id="editSheetSaveLabel">Сохранить</span>
+    </button>
     <button class="delete-btn" id="editDeleteBtn">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
       </svg>
-      Delete
+      <span id="editDeleteLabel">Delete</span>
     </button>
   </div></div>
 
   <div id="fillSheet" class="sheet-overlay"><div class="sheet">
-    <div class="sheet-title">Заполни перед копированием</div>
+    <div class="sheet-title" id="fillSheetTitle">Заполни перед копированием</div>
     <div id="fillSheetFields"></div>
     <div class="fill-preview" id="fillSheetPreview"></div>
     <button class="sheet-btn" id="fillSheetCopy">Скопировать</button>
   </div></div>
 
+  <div id="settingsSheet" class="sheet-overlay"><div class="sheet">
+    <div class="sheet-title" id="settingsSheetTitle">Настройки</div>
+    <button class="field-row" id="languageRow">
+      <span class="field-row-label" id="languageFieldLabel">Язык</span>
+      <span class="field-row-value" id="languageValue">Русский <span>›</span></span>
+    </button>
+    <div class="palette-grid" id="languagePickGrid" style="display:none; grid-template-columns: repeat(3, 1fr);"></div>
+    <button class="field-row" id="signOutRow">
+      <span class="field-row-label" id="signOutLabel" style="color:#A6685C;">Выйти</span>
+      <span class="field-row-value"><span>›</span></span>
+    </button>
+  </div></div>
+
   <div id="categorySheet" class="sheet-overlay"><div class="sheet">
-    <div class="sheet-title">Новая тема</div>
+    <div class="sheet-title" id="newThemeTitle">Новая тема</div>
     <input id="categorySheetInput" type="text" placeholder="Название темы…" />
     <button class="sheet-btn" id="categorySheetSave">Создать</button>
+  </div></div>
+
+  <div id="renameSheet" class="sheet-overlay"><div class="sheet">
+    <div class="sheet-title" id="renameSheetTitle">Переименовать</div>
+    <input id="renameSheetInput" type="text" placeholder="Название…" />
+    <div id="renameColorRow" style="display:none;">
+      <div id="renameColorLabel" style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Цвет</div>
+      <div class="palette-grid" id="renameColorGrid" style="margin-bottom:14px;"></div>
+    </div>
+    <button class="sheet-btn" id="renameSheetSave">Сохранить</button>
   </div></div>
 
   <div id="stagesSheet" class="sheet-overlay"><div class="sheet">
@@ -198,6 +243,7 @@
     </div>
   </div></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
@@ -209,7 +255,6 @@
     onSnapshot, query
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // === ЗАПОЛНИ ПОСЛЕ СОЗДАНИЯ FIREBASE-ПРОЕКТА (console.firebase.google.com → Project settings → Your apps) ===
   const firebaseConfig = {
     apiKey: "AIzaSyDvRj58WnOZMRqa8B6YkELGhz8kTOlz0XY",
     authDomain: "notelist-3dd60.firebaseapp.com",
@@ -235,24 +280,82 @@
     { id: "other", color: "#8A8069", label: "Другое", order: 2, stages: [] },
   ];
 
-  let currentUser = null;
+  const I18N = {
+    ru: {
+      settingsTitle: "Настройки", viewToggleTitle: "Вид: сетка/список", allThemes: "Все темы",
+      searchPlaceholder: "Поиск…", editTitle: "Редактировать", pinAction: "Закрепить", unpinAction: "Открепить",
+      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)",
+      textPlaceholder: "Текст ответа… можно с {переменными}", themeFieldLabel: "Тема", sectionFieldLabel: "Раздел",
+      save: "Сохранить", deleteAction: "Удалить", fillTitle: "Заполни перед копированием", copyAction: "Скопировать",
+      settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
+      themeNamePlaceholder: "Название темы…", create: "Создать", renameTitle: "Переименовать",
+      renameThemeTitle: "Переименовать тему", renameStageTitle: "Переименовать раздел", namePlaceholder: "Название…",
+      colorLabel: "Цвет", sectionsTitle: "Разделы", newSectionPlaceholder: "Новый раздел…",
+      noSectionsShort: "Разделов пока нет", noSectionsLong: "У этой темы пока нет разделов",
+      all: "Все", own: "своя", allSections: "все разделы", addChangeSections: "Добавить / изменить разделы",
+      notFoundSearch: "Ничего не найдено по запросу", add: "добавить", checkFreshness: "Проверь актуальность",
+      deleteSection: "Удалить раздел", copiedOk: "Скопировано ✓", copyFail: "Не удалось скопировать — попробуй ещё раз",
+      addedOk: "Добавлено ✓", savedOk: "Сохранено ✓", duplicateCreated: "Дубликат создан — отредактируй",
+      markedFresh: "Отмечено как актуальное", keepOneTheme: "Должна остаться хотя бы одна тема",
+      notSelected: "не выбран", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Выйти",
+    },
+    en: {
+      settingsTitle: "Settings", viewToggleTitle: "View: grid/list", allThemes: "All themes",
+      searchPlaceholder: "Search…", editTitle: "Edit", pinAction: "Pin", unpinAction: "Unpin",
+      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)",
+      textPlaceholder: "Reply text… you can use {variables}", themeFieldLabel: "Theme", sectionFieldLabel: "Section",
+      save: "Save", deleteAction: "Delete", fillTitle: "Fill in before copying", copyAction: "Copy",
+      settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
+      themeNamePlaceholder: "Theme name…", create: "Create", renameTitle: "Rename",
+      renameThemeTitle: "Rename theme", renameStageTitle: "Rename section", namePlaceholder: "Name…",
+      colorLabel: "Color", sectionsTitle: "Sections", newSectionPlaceholder: "New section…",
+      noSectionsShort: "No sections yet", noSectionsLong: "This theme has no sections yet",
+      all: "All", own: "custom", allSections: "all sections", addChangeSections: "Add / edit sections",
+      notFoundSearch: "Nothing found", add: "add", checkFreshness: "Check if still up to date",
+      deleteSection: "Delete section", copiedOk: "Copied ✓", copyFail: "Couldn't copy — try again",
+      addedOk: "Added ✓", savedOk: "Saved ✓", duplicateCreated: "Duplicate created — edit it",
+      markedFresh: "Marked as up to date", keepOneTheme: "At least one theme must remain",
+      notSelected: "not selected", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Sign out",
+    },
+    es: {
+      settingsTitle: "Ajustes", viewToggleTitle: "Vista: cuadrícula/lista", allThemes: "Todos los temas",
+      searchPlaceholder: "Buscar…", editTitle: "Editar", pinAction: "Fijar", unpinAction: "Quitar fijado",
+      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)",
+      textPlaceholder: "Texto de la respuesta… puedes usar {variables}", themeFieldLabel: "Tema", sectionFieldLabel: "Sección",
+      save: "Guardar", deleteAction: "Eliminar", fillTitle: "Completa antes de copiar", copyAction: "Copiar",
+      settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
+      themeNamePlaceholder: "Nombre del tema…", create: "Crear", renameTitle: "Renombrar",
+      renameThemeTitle: "Renombrar tema", renameStageTitle: "Renombrar sección", namePlaceholder: "Nombre…",
+      colorLabel: "Color", sectionsTitle: "Secciones", newSectionPlaceholder: "Nueva sección…",
+      noSectionsShort: "Aún no hay secciones", noSectionsLong: "Este tema aún no tiene secciones",
+      all: "Todos", own: "propio", allSections: "todas las secciones", addChangeSections: "Añadir / editar secciones",
+      notFoundSearch: "No se encontró nada", add: "añadir", checkFreshness: "Comprueba si sigue vigente",
+      deleteSection: "Eliminar sección", copiedOk: "Copiado ✓", copyFail: "No se pudo copiar — inténtalo de nuevo",
+      addedOk: "Añadido ✓", savedOk: "Guardado ✓", duplicateCreated: "Duplicado creado — edítalo",
+      markedFresh: "Marcado como actualizado", keepOneTheme: "Debe quedar al menos un tema",
+      notSelected: "no seleccionado", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Cerrar sesión",
+    },
+  };
+  let currentLang = localStorage.getItem('lang') || 'ru';
+  function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) ?? I18N.ru[key] ?? key; }
+
   let categories = [];
   let clips = [];
-  let unsubCats = null, unsubClips = null;
   let activeCategory = "all";
   let activeStage = "all";
   let searchQuery = "";
   let categoriesExpanded = false;
+  let sortableInstance = null;
   let stagesExpanded = false;
   let expandedClipIds = new Set();
   let menuOpenId = null;
   let editingClipId = null;
   let fillModalClip = null;
   let fillModalValues = {};
+  let currentUser = null;
+  let unsubCats = null, unsubClips = null;
 
   const $ = (id) => document.getElementById(id);
-
-  $('signOutBtn').onclick = () => signOut(auth);
 
   $('googleBtn').onclick = async () => {
     $('loginError').style.display = 'none';
@@ -273,6 +376,7 @@
       }
     }
   };
+  $('signOutRow').onclick = () => signOut(auth);
   getRedirectResult(auth).catch((e) => {
     console.error('Ошибка входа (redirect):', e.code, e.message);
     $('loginError').textContent = 'Ошибка входа: ' + e.message;
@@ -312,8 +416,11 @@
       $('app').classList.remove('visible');
       categories = []; clips = [];
     }
+    applyStaticTexts();
     setTimeout(() => { $('splashScreen').classList.add('hidden'); }, 900);
   });
+
+  try { initDragReorder(); } catch (e) { console.error('Перетаскивание недоступно:', e); }
 
 
   function flashStatus(msg, ms = 1800) {
@@ -383,7 +490,7 @@
     } else {
       const ok = await copyText(clip.text);
       await registerCopy(clip.id);
-      flashStatus(ok ? 'Скопировано ✓' : 'Не удалось скопировать — попробуй ещё раз', ok ? 1800 : 2800);
+      flashStatus(ok ? t('copiedOk') : t('copyFail'), ok ? 1800 : 2800);
     }
   }
 
@@ -401,9 +508,10 @@
   }
   async function duplicateClip(clip) {
     const { id, ...rest } = clip;
-    await addDoc(collection(db, 'users', currentUser.uid, 'clips'), { ...rest, copyCount: 0, updatedAt: new Date().toISOString() });
+    const minOrder = Math.min(0, ...clips.map((c) => c.order ?? 0));
+    await addDoc(collection(db, 'users', currentUser.uid, 'clips'), { ...rest, copyCount: 0, order: minOrder - 1, updatedAt: new Date().toISOString() });
     menuOpenId = null;
-    flashStatus('Дубликат создан — отредактируй');
+    flashStatus(t('duplicateCreated'));
   }
   async function togglePin(clipId) {
     const c = clips.find((x) => x.id === clipId);
@@ -413,9 +521,9 @@
   async function markRefreshed(clipId) {
     await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { updatedAt: new Date().toISOString() });
     menuOpenId = null;
-    flashStatus('Отмечено как актуальное');
+    flashStatus(t('markedFresh'));
   }
-  let editDraftCategory = null; // временный выбор темы/раздела для карточки, которая ещё не сохранена
+  let editDraftCategory = null; // временный выбор темы/этапа для карточки, которая ещё не сохранена
   let editDraftStage = null;
 
   function refreshEditSheetFields() {
@@ -427,17 +535,18 @@
     if (stages.length > 0) {
       $('editStageRow').style.display = 'flex';
       const stage = stages.find((s) => s.id === editDraftStage);
-      $('editStageValue').innerHTML = `${escapeHtml(stage?.label || 'не выбран')} <span id="editStageChevron">›</span>`;
+      $('editStageValue').innerHTML = `${escapeHtml(stage?.label || t('notSelected'))} <span id="editStageChevron">›</span>`;
     } else {
       $('editStageRow').style.display = 'none';
     }
     const isNew = editingClipId === 'new';
     $('editDeleteBtn').style.display = isNew ? 'none' : 'flex';
     $('editDupBtn').style.display = isNew ? 'none' : 'flex';
+    $('editDupBtn').textContent = '⧉ ' + t('duplicateAction');
     const clip = isNew ? null : clips.find((c) => c.id === editingClipId);
     $('editPinBtn').style.display = isNew ? 'none' : 'flex';
     $('editPinBtn').classList.toggle('active', !!clip?.pinned);
-    $('editPinBtn').textContent = clip?.pinned ? '⬆ Откреплено' : '⬆ Top';
+    $('editPinBtn').textContent = '⬆ ' + (clip?.pinned ? t('unpinAction') : t('pinAction'));
   }
 
   function openEditModal(clip) {
@@ -463,16 +572,17 @@
     const title = $('editTitleInput').value.trim();
     if (!text) { $('editSheet').classList.remove('open'); return; }
     if (editingClipId === 'new') {
+      const minOrder = Math.min(0, ...clips.map((c) => c.order ?? 0));
       await addDoc(collection(db, 'users', currentUser.uid, 'clips'), {
         title, text, categoryId: editDraftCategory, stageId: editDraftStage,
-        copyCount: 0, pinned: false, updatedAt: new Date().toISOString(),
+        copyCount: 0, pinned: false, order: minOrder - 1, updatedAt: new Date().toISOString(),
       });
-      flashStatus('Добавлено ✓');
+      flashStatus(t('addedOk'));
     } else {
       await updateDoc(doc(db, 'users', currentUser.uid, 'clips', editingClipId), {
         title, text, categoryId: editDraftCategory, stageId: editDraftStage, updatedAt: new Date().toISOString(),
       });
-      flashStatus('Сохранено ✓');
+      flashStatus(t('savedOk'));
     }
     editingClipId = null;
     $('editSheet').classList.remove('open');
@@ -497,12 +607,12 @@
     let html = stages.map((s) => `
       <div class="stage-pick-item">
         <button class="stage-pick-row" data-pick-stage="${s.id}">${s.id === editDraftStage ? '✓ ' : ''}${escapeHtml(s.label)}</button>
-        <button class="stage-pick-del" data-rename-stage="${s.id}" title="Переименовать">
+        <button class="stage-pick-del" data-rename-stage="${s.id}" title="${t('renameTitle')}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
           </svg>
         </button>
-        <button class="stage-pick-del" data-del-stage="${s.id}" title="Удалить раздел">
+        <button class="stage-pick-del" data-del-stage="${s.id}" title="${t('deleteSection')}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
           </svg>
@@ -510,11 +620,11 @@
       </div>
     `).join('');
     if (!stages.length) {
-      html += `<div style="padding:10px 4px 4px;color:var(--text-dim);font-size:13px;">У этой темы пока нет разделов</div>`;
+      html += `<div style="padding:10px 4px 4px;color:var(--text-dim);font-size:13px;">${t('noSectionsLong')}</div>`;
     }
     html += `
       <div style="display:flex; gap:8px; padding-top:10px;">
-        <input id="newStageInline" type="text" placeholder="Новый раздел…" style="flex:1; margin-bottom:0; padding:8px 10px; font-size:13px;" />
+        <input id="newStageInline" type="text" placeholder="${t('newSectionPlaceholder')}" style="flex:1; margin-bottom:0; padding:8px 10px; font-size:13px;" />
         <button id="newStageInlineAdd" class="sheet-btn" style="width:auto; padding:0 14px;">+</button>
       </div>`;
     list.innerHTML = html;
@@ -542,7 +652,7 @@
     selectCategory(id);
   }
   async function deleteCategory(id) {
-    if (categories.length <= 1) { flashStatus('Должна остаться хотя бы одна тема'); return; }
+    if (categories.length <= 1) { flashStatus(t('keepOneTheme')); return; }
     const fallback = categories.find((c) => c.id !== id).id;
     await deleteDoc(doc(db, 'users', currentUser.uid, 'categories', id));
     const affected = clips.filter((c) => c.categoryId === id);
@@ -551,14 +661,15 @@
     }
     if (activeCategory === id) selectCategory('all');
   }
-  async function renameCategory(id) {
+  let renameTarget = null; // { type: 'category'|'stage', id, categoryId }
+
+  function renameCategory(id) {
     const cat = catById(id);
     if (!cat) return;
-    const next = prompt('Новое название темы:', cat.label);
-    if (next === null) return;
-    const trimmed = next.trim().slice(0, 16);
-    if (!trimmed) return;
-    await updateDoc(doc(db, 'users', currentUser.uid, 'categories', id), { label: trimmed });
+    renameTarget = { type: 'category', id };
+    $('renameSheetTitle').textContent = t('renameThemeTitle');
+    $('renameSheetInput').value = cat.label;
+    $('renameSheet').classList.add('open');
   }
   async function addStage(categoryId, label) {
     const trimmed = label.trim().slice(0, 18);
@@ -579,16 +690,64 @@
     }
     if (activeStage === stageId) activeStage = 'all';
   }
-  async function renameStage(categoryId, stageId) {
+  function renameStage(categoryId, stageId) {
     const cat = catById(categoryId);
     const stage = cat?.stages.find((s) => s.id === stageId);
     if (!stage) return;
-    const next = prompt('Новое название раздела:', stage.label);
-    if (next === null) return;
-    const trimmed = next.trim().slice(0, 18);
-    if (!trimmed) return;
-    const stages = cat.stages.map((s) => (s.id === stageId ? { ...s, label: trimmed } : s));
-    await updateDoc(doc(db, 'users', currentUser.uid, 'categories', categoryId), { stages });
+    renameTarget = { type: 'stage', id: stageId, categoryId };
+    $('renameSheetTitle').textContent = t('renameStageTitle');
+    $('renameSheetInput').value = stage.label;
+    $('renameSheet').classList.add('open');
+  }
+
+  async function applyRename() {
+    if (!renameTarget) { $('renameSheet').classList.remove('open'); return; }
+    const next = $('renameSheetInput').value.trim();
+    if (!next) { $('renameSheet').classList.remove('open'); renameTarget = null; return; }
+    if (renameTarget.type === 'category') {
+      await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.id), { label: next.slice(0, 16) });
+    } else {
+      const cat = catById(renameTarget.categoryId);
+      const stages = (cat?.stages || []).map((s) => (s.id === renameTarget.id ? { ...s, label: next.slice(0, 18) } : s));
+      await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.categoryId), { stages });
+    }
+    // обновляем открытую вспомогательную панель, если она сейчас видна (данные подтянутся через onSnapshot чуть позже)
+    setTimeout(() => {
+      if ($('stagesSheet').classList.contains('open')) renderStagesSheet();
+      if ($('listDropdown').classList.contains('open')) renderDropdown();
+      if ($('stagePickList').style.display !== 'none' && $('editSheet').classList.contains('open')) {
+        renderStagePickList();
+      }
+    }, 300);
+    $('renameSheet').classList.remove('open');
+    renameTarget = null;
+  }
+
+  // ==== ПЕРЕВОД СТАТИЧНЫХ ЭЛЕМЕНТОВ ====
+  function applyStaticTexts() {
+    $('settingsBtn').title = t('settingsTitle');
+    $('viewToggleBtn').title = t('viewToggleTitle');
+    $('searchInput').placeholder = t('searchPlaceholder');
+    $('editSheetTitle').textContent = t('editTitle');
+    $('editTitleInput').placeholder = t('titlePlaceholder');
+    $('editSheetInput').placeholder = t('textPlaceholder');
+    $('themeFieldLabel').textContent = t('themeFieldLabel');
+    $('sectionFieldLabel').textContent = t('sectionFieldLabel');
+    $('editSheetSaveLabel').textContent = t('save');
+    $('editDeleteLabel').textContent = t('deleteAction');
+    $('fillSheetTitle').textContent = t('fillTitle');
+    $('fillSheetCopy').textContent = t('copyAction');
+    $('settingsSheetTitle').textContent = t('settingsSheetTitle');
+    $('languageFieldLabel').textContent = t('languageLabel');
+    $('languageValue').innerHTML = `${t('lang' + currentLang[0].toUpperCase() + currentLang.slice(1))} <span>›</span>`;
+    $('newThemeTitle').textContent = t('newThemeTitle');
+    $('categorySheetInput').placeholder = t('themeNamePlaceholder');
+    $('categorySheetSave').textContent = t('create');
+    $('renameSheetInput').placeholder = t('namePlaceholder');
+    $('renameColorLabel').textContent = t('colorLabel');
+    $('renameSheetSave').textContent = t('save');
+    $('stagesSheetInput').placeholder = t('newSectionPlaceholder');
+    $('signOutLabel').textContent = t('signOut');
   }
 
   // ==== РЕНДЕР ====
@@ -601,7 +760,7 @@
 
   function renderTopBar() {
     const cat = currentCat();
-    $('themeLabel').firstChild.textContent = (cat ? cat.label : 'Все темы') + ' ';
+    $('themeLabel').firstChild.textContent = (cat ? cat.label : t('allThemes')) + ' ';
   }
 
   $('themeLabel').onclick = (e) => { e.stopPropagation(); toggleDropdown(); };
@@ -614,19 +773,20 @@
     const dd = $('listDropdown');
     let html = `<button class="dd-add" data-action="new-category">
       <span style="width:22px;height:22px;border-radius:50%;border:1.5px dashed var(--text-dim);display:flex;align-items:center;justify-content:center;">+</span>
-      Новая тема
+      ${t('newThemeTitle')}
     </button>`;
     html += `<div class="dd-row"><button class="dd-main" data-action="select-cat" data-id="all">
-      <span><span class="dd-dot" style="background:repeating-conic-gradient(#555 0% 25%, #333 0% 50%)"></span>Все темы</span>
-      ${activeCategory === 'all' ? '<span>✓</span>' : ''}
+      <span><span class="dd-dot" style="background:repeating-conic-gradient(#555 0% 25%, #333 0% 50%)"></span>${t('allThemes')}</span>
+      ${activeCategory === 'all' && activeStage === 'all' ? '<span>✓</span>' : ''}
     </button></div>`;
     categories.forEach((cat) => {
+      const isActiveCat = activeCategory === cat.id;
       html += `<div class="dd-row">
         <button class="dd-main" data-action="select-cat" data-id="${cat.id}">
           <span><span class="dd-dot" style="background:${cat.color}"></span>${escapeHtml(cat.label)}</span>
-          ${activeCategory === cat.id ? '<span>✓</span>' : ''}
+          ${isActiveCat && activeStage === 'all' ? '<span>✓</span>' : ''}
         </button>
-        <button class="dd-del" data-action="rename-cat" data-id="${cat.id}" title="Переименовать">
+        <button class="dd-del" data-action="rename-cat" data-id="${cat.id}" title="${t('renameTitle')}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
           </svg>
@@ -637,6 +797,13 @@
           </svg>
         </button>
       </div>`;
+      (cat.stages || []).forEach((s) => {
+        const isActiveStage = isActiveCat && activeStage === s.id;
+        html += `<button class="dd-stage-row" data-action="select-cat-stage" data-cat="${cat.id}" data-stage="${s.id}">
+          <span>${escapeHtml(s.label)}</span>
+          ${isActiveStage ? '<span>✓</span>' : ''}
+        </button>`;
+      });
     });
     dd.innerHTML = html;
   }
@@ -645,7 +812,7 @@
     const row = $('categoriesRow');
     let html = `<button class="pill-circle-wrap" data-action="select-cat" data-id="all">
       <div class="pill-circle ${activeCategory === 'all' ? 'active' : ''}" style="background:repeating-conic-gradient(#555 0% 25%, #333 0% 50%)"></div>
-      <span class="pill-label">Все</span>
+      <span class="pill-label">${t('all')}</span>
     </button>`;
     categories.forEach((cat) => {
       html += `<button class="pill-circle-wrap" data-action="select-cat" data-id="${cat.id}">
@@ -655,7 +822,7 @@
     });
     html += `<button class="pill-circle-wrap" data-action="new-category">
       <div class="pill-circle" style="border:1.5px dashed var(--text-dim);display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:14px;">+</div>
-      <span class="pill-label">своя</span>
+      <span class="pill-label">${t('own')}</span>
     </button>`;
     row.innerHTML = html;
   }
@@ -668,13 +835,13 @@
     const stages = cat.stages || [];
     let html = '';
     if (stages.length > 0) {
-      html += `<button class="stage-pill ${activeStage === 'all' ? 'active' : ''}" data-action="select-stage" data-id="all" style="${activeStage === 'all' ? `background:${cat.color};border-color:${cat.color}` : ''}">все разделы</button>`;
+      html += `<button class="stage-pill ${activeStage === 'all' ? 'active' : ''}" data-action="select-stage" data-id="all" style="${activeStage === 'all' ? `background:${cat.color};border-color:${cat.color}` : ''}">${t('allSections')}</button>`;
     }
     stages.forEach((s) => {
       const isActive = activeStage === s.id;
       html += `<button class="stage-pill ${isActive ? 'active' : ''}" data-action="select-stage" data-id="${s.id}" style="${isActive ? `background:${cat.color};border-color:${cat.color}` : ''}">${escapeHtml(s.label)}</button>`;
     });
-    html += `<button class="stage-plus" data-action="manage-stages" title="Добавить / изменить разделы">+</button>`;
+    html += `<button class="stage-plus" data-action="manage-stages" title="${t('addChangeSections')}">+</button>`;
     row.innerHTML = html;
   }
 
@@ -686,12 +853,12 @@
       return mCat && mStage;
     });
     let list = scopedList.filter((c) => !searchQuery.trim() || c.text.toLowerCase().includes(searchQuery.toLowerCase()));
-    list.sort((a, b) => (Number(!!b.pinned) - Number(!!a.pinned)) || ((b.copyCount || 0) - (a.copyCount || 0)));
+    list.sort((a, b) => (Number(!!b.pinned) - Number(!!a.pinned)) || ((a.order ?? 0) - (b.order ?? 0)));
 
     if (list.length === 0) {
       grid.innerHTML = scopedList.length
-        ? `<div class="empty-msg">Ничего не найдено по запросу</div>`
-        : `<button class="add-tile" data-action="new-clip"><span style="font-size:22px;">+</span><span style="font-size:9px;">добавить</span></button>`;
+        ? `<div class="empty-msg">${t('notFoundSearch')}</div>`
+        : `<button class="add-tile" data-action="new-clip"><span style="font-size:22px;">+</span><span style="font-size:9px;">${t('add')}</span></button>`;
       return;
     }
 
@@ -702,18 +869,46 @@
 
       html += `<div class="clip-card" style="background:${cat.color}" data-action="card-click" data-id="${clip.id}">
         <div class="clip-top">
-          <span class="clip-tagname">${escapeHtml(cat.label)}</span>
+          <span class="clip-tagname">${escapeHtml(clip.title || cat.label)}</span>
           <div class="clip-right">
             ${clip.pinned ? `<span class="clip-pin">⬆</span>` : ''}
-            ${stale ? `<span class="clip-stale-dot" title="Проверь актуальность"></span>` : ''}
+            ${stale ? `<span class="clip-stale-dot" title="${t('checkFreshness')}"></span>` : ''}
             <button class="clip-menu-btn" data-action="edit-clip" data-id="${clip.id}">•••</button>
           </div>
         </div>
         <div class="clip-text">${escapeHtml(clip.text)}</div>
       </div>`;
     });
-    html += `<button class="add-tile" data-action="new-clip"><span style="font-size:22px;">+</span><span style="font-size:9px;">добавить</span></button>`;
+    html += `<button class="add-tile" data-action="new-clip"><span style="font-size:22px;">+</span><span style="font-size:9px;">${t('add')}</span></button>`;
     grid.innerHTML = html;
+  }
+
+  // ==== ПЕРЕТАСКИВАНИЕ КАРТОЧЕК (через библиотеку SortableJS) ====
+
+  function initDragReorder() {
+    const grid = $('grid');
+    if (sortableInstance) sortableInstance.destroy();
+    sortableInstance = new Sortable(grid, {
+      draggable: '.clip-card',
+      filter: 'button',           // тап по кнопкам (•••, добавить) не начинает перетаскивание
+      preventOnFilter: false,     // и сами кнопки продолжают нормально работать по тапу
+      delay: 150,                 // держим 150мс — иначе это просто тап (копирование)
+      delayOnTouchOnly: true,
+      touchStartThreshold: 5,
+      animation: 200,             // плавное расступание карточек — из коробки
+      ghostClass: 'drag-ghost',   // полупрозрачный контур на месте, куда встанет карточка
+      chosenClass: 'drag-chosen', // сама перетаскиваемая карточка
+      onEnd: async () => {
+        const ids = [...grid.querySelectorAll('.clip-card')].map((el) => el.dataset.id);
+        for (let i = 0; i < ids.length; i++) {
+          const c = clips.find((x) => x.id === ids[i]);
+          if (c && c.order !== i) {
+            c.order = i;
+            await updateDoc(doc(db, 'users', currentUser.uid, 'clips', ids[i]), { order: i });
+          }
+        }
+      },
+    });
   }
 
   function renderFillSheet() {
@@ -736,15 +931,15 @@
   function renderStagesSheet() {
     const cat = currentCat();
     if (!cat) return;
-    $('stagesSheetTitle').textContent = 'Разделы — ' + cat.label;
+    $('stagesSheetTitle').textContent = t('sectionsTitle') + ' — ' + cat.label;
     const stages = cat.stages || [];
     $('stagesSheetList').innerHTML = stages.length === 0
-      ? `<div style="font-size:12px;color:var(--text-dim);padding:6px 0 12px;">Разделов пока нет</div>`
+      ? `<div style="font-size:12px;color:var(--text-dim);padding:6px 0 12px;">${t('noSectionsShort')}</div>`
       : stages.map((s) => `
         <div class="stage-list-row">
           <span style="font-size:13px;">${escapeHtml(s.label)}</span>
           <span style="display:flex; gap:8px;">
-            <button class="stage-list-del" data-action="rename-stage" data-cat="${cat.id}" data-stage="${s.id}" title="Переименовать">
+            <button class="stage-list-del" data-action="rename-stage" data-cat="${cat.id}" data-stage="${s.id}" title="${t('renameTitle')}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
               </svg>
@@ -781,11 +976,18 @@
 
     switch (action) {
       case 'select-cat': selectCategory(id); $('listDropdown').classList.remove('open'); break;
+      case 'select-cat-stage': {
+        activeCategory = btn.dataset.cat;
+        activeStage = btn.dataset.stage;
+        renderAll();
+        $('listDropdown').classList.remove('open');
+        break;
+      }
       case 'select-stage': activeStage = id; renderStages(); renderGrid(); break;
       case 'manage-stages': renderStagesSheet(); $('stagesSheet').classList.add('open'); break;
       case 'new-category': $('categorySheetInput').value=''; $('categorySheet').classList.add('open'); $('listDropdown').classList.remove('open'); break;
       case 'delete-cat': await deleteCategory(id); break;
-      case 'rename-cat': await renameCategory(id); break;
+      case 'rename-cat': renameCategory(id); break;
       case 'quick-copy': case 'card-click': {
         const clip = clips.find((c) => c.id === id);
         if (clip) await handleCardClick(clip);
@@ -799,7 +1001,7 @@
       case 'assign-stage': await assignStage(id, btn.dataset.stage); break;
       case 'delete-clip': await deleteClip(id); break;
       case 'delete-stage': await deleteStage(btn.dataset.cat, btn.dataset.stage); renderStagesSheet(); break;
-      case 'rename-stage': await renameStage(btn.dataset.cat, btn.dataset.stage); renderStagesSheet(); break;
+      case 'rename-stage': renameStage(btn.dataset.cat, btn.dataset.stage); break;
       case 'new-clip': openNewClipModal(); break;
     }
   });
@@ -821,11 +1023,7 @@
   $('stagePickList').addEventListener('click', async (e) => {
     const renameBtn = e.target.closest('[data-rename-stage]');
     if (renameBtn) {
-      await renameStage(editDraftCategory, renameBtn.dataset.renameStage);
-      renderStagePickList();
-      const cat = catById(editDraftCategory);
-      const stage = cat?.stages.find((s) => s.id === editDraftStage);
-      if (stage) $('editStageValue').innerHTML = `${escapeHtml(stage.label)} <span id="editStageChevron">⌄</span>`;
+      renameStage(editDraftCategory, renameBtn.dataset.renameStage);
       return;
     }
     const delBtn = e.target.closest('[data-del-stage]');
@@ -837,12 +1035,11 @@
       renderStagePickList();
       const stages = cat?.stages || [];
       if (stages.length === 0) {
-        // разделов не осталось — сворачиваем панель и убираем строку "Раздел" целиком
         $('stagePickList').style.display = 'none';
         $('editStageRow').style.display = 'none';
       } else {
         const stage = stages.find((s) => s.id === editDraftStage);
-        $('editStageValue').innerHTML = `${escapeHtml(stage?.label || 'не выбран')} <span id="editStageChevron">⌄</span>`;
+        $('editStageValue').innerHTML = `${escapeHtml(stage?.label || t('notSelected'))} <span id="editStageChevron">⌄</span>`;
       }
       await deleteStage(editDraftCategory, stageId); // подтверждаем на сервере
       return;
@@ -857,7 +1054,7 @@
         const cat = catById(editDraftCategory);
         if (cat && !(cat.stages || []).find((s) => s.id === newId)) cat.stages = [...(cat.stages || []), { id: newId, label: trimmed }];
         editDraftStage = newId;
-        renderStagePickList(); // обновляем список — новый раздел уже виден и отмечен
+        renderStagePickList();
         const stage = cat.stages.find((s) => s.id === newId);
         $('editStageValue').innerHTML = `${escapeHtml(stage.label)} <span id="editStageChevron">⌄</span>`;
       }
@@ -896,15 +1093,52 @@
     const finalText = fillPlaceholders(fillModalClip.text, fillModalValues);
     const ok = await copyText(finalText);
     registerCopy(fillModalClip.id);
-    flashStatus(ok ? 'Скопировано ✓' : 'Не удалось скопировать — попробуй ещё раз', ok ? 1800 : 2800);
+    flashStatus(ok ? t('copiedOk') : t('copyFail'), ok ? 1800 : 2800);
     $('fillSheet').classList.remove('open');
     renderAll();
   };
   $('fillSheet').addEventListener('click', (e) => { if (e.target.id === 'fillSheet') $('fillSheet').classList.remove('open'); });
 
+  const LANGS = [
+    { code: 'ru', key: 'langRu', color: '#4E6B45' },
+    { code: 'en', key: 'langEn', color: '#B5654B' },
+    { code: 'es', key: 'langEs', color: '#8A8069' },
+  ];
+  function renderLanguagePicker() {
+    $('languagePickGrid').innerHTML = LANGS.map((l) => `
+      <div class="palette-swatch ${l.code === currentLang ? 'active' : ''}" style="background:${l.color}; display:flex; align-items:center; justify-content:center; aspect-ratio:auto; height:44px; border-radius:10px; font-size:11px; font-weight:700; color:#fff;" data-lang="${l.code}">${t(l.key)}</div>
+    `).join('');
+  }
+  function setLanguage(code) {
+    currentLang = code;
+    localStorage.setItem('lang', code);
+    applyStaticTexts();
+    renderLanguagePicker();
+    renderAll();
+  }
+  $('settingsBtn').onclick = () => { applyStaticTexts(); $('settingsSheet').classList.add('open'); };
+  $('settingsSheet').addEventListener('click', (e) => { if (e.target.id === 'settingsSheet') $('settingsSheet').classList.remove('open'); });
+  $('languageRow').onclick = () => {
+    const grid = $('languagePickGrid');
+    const isOpen = grid.style.display !== 'none';
+    if (isOpen) { grid.style.display = 'none'; return; }
+    renderLanguagePicker();
+    grid.style.display = 'grid';
+  };
+  $('languagePickGrid').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-lang]');
+    if (!el) return;
+    setLanguage(el.dataset.lang);
+    $('languagePickGrid').style.display = 'none';
+  });
+
   $('categorySheetSave').onclick = () => addCategory($('categorySheetInput').value);
   $('categorySheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCategory(e.target.value); });
   $('categorySheet').addEventListener('click', (e) => { if (e.target.id === 'categorySheet') $('categorySheet').classList.remove('open'); });
+
+  $('renameSheetSave').onclick = applyRename;
+  $('renameSheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRename(); });
+  $('renameSheet').addEventListener('click', (e) => { if (e.target.id === 'renameSheet') { $('renameSheet').classList.remove('open'); renameTarget = null; } });
 
   $('stagesSheetAdd').onclick = async () => {
     const cat = currentCat();
@@ -924,6 +1158,20 @@
   };
   $('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value; renderGrid(); });
   $('searchInput').addEventListener('blur', () => { if (!searchQuery) $('searchInput').classList.remove('open'); });
+
+  const GRID_ICON = `<rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>`;
+  const LIST_ICON = `<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>`;
+  let viewMode = localStorage.getItem('viewMode') || 'grid';
+  function applyViewMode() {
+    $('grid').classList.toggle('list-view', viewMode === 'list');
+    $('viewToggleIcon').innerHTML = viewMode === 'list' ? GRID_ICON : LIST_ICON; // показываем иконку того вида, В КОТОРЫЙ переключит клик
+  }
+  $('viewToggleBtn').onclick = () => {
+    viewMode = viewMode === 'grid' ? 'list' : 'grid';
+    localStorage.setItem('viewMode', viewMode);
+    applyViewMode();
+  };
+  applyViewMode();
 </script>
 </body>
 </html>
