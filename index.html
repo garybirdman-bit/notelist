@@ -84,7 +84,7 @@
   .clip-right { display: flex; align-items: center; gap: 6px; }
   .clip-pin { display: flex; align-items: center; color: rgba(255,255,255,0.85); }
   .clip-stale-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
-  .clip-menu-btn { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 15px; cursor: pointer; padding: 1px 4px; line-height: 1; }
+  .clip-menu-btn { background: none; border: none; color: rgba(255,255,255,0.85); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
   .clip-text { font-size: 12.5px; font-weight: 600; line-height: 1.35; color: #fff; flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: none; }
   .clip-text::-webkit-scrollbar { display: none; }
 
@@ -93,7 +93,7 @@
   .sheet { background: var(--bg-elevated); width: 100%; border-radius: 16px 16px 0 0; padding: 18px; border-top: 1px solid var(--line); max-height: 70vh; display: flex; flex-direction: column; }
   .sheet-title { font-size: 18px; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; color: var(--text); margin-bottom: 12px; }
   .sheet textarea, .sheet input[type=text] { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; padding: 10px 12px; outline: none; resize: none; margin-bottom: 10px; font-family: inherit; }
-  .sheet-btn { width: 100%; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; padding: 10px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+  .sheet-btn { width: 100%; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; padding: 12px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .stage-list-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 4px; border-bottom: 1px solid var(--line); }
   .stage-list-del { background: none; border: none; color: #e08585; cursor: pointer; padding: 4px; }
   .fill-preview { font-size: 11px; color: var(--text-dim); margin-top: 4px; margin-bottom: 14px; line-height: 1.4; background: var(--bg); border-radius: 8px; padding: 8px 10px; }
@@ -176,10 +176,10 @@
       <button class="edit-action-btn" id="editDupBtn">⧉ Дублировать</button>
     </div>
     <input id="editTitleInput" class="title-input" type="text" placeholder="Название (необязательно)" />
-    <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
-      <button id="insertBracesBtn" type="button" style="background:var(--bg-elevated); border:1px solid var(--line); color:var(--text-dim); font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer;">{ }</button>
+    <div style="position:relative;">
+      <textarea id="editSheetInput" rows="3" placeholder="Текст ответа… можно с {переменными}" style="padding-bottom:48px; display:block;"></textarea>
+      <button id="insertBracesBtn" type="button" style="position:absolute; right:14px; bottom:16px; background:var(--bg-elevated); border:1px solid var(--line); color:var(--text-dim); font-size:13px; font-weight:700; padding:6px 14px; border-radius:8px; cursor:pointer; opacity:0.9;">{ }</button>
     </div>
-    <textarea id="editSheetInput" rows="3" placeholder="Текст ответа… можно с {переменными}"></textarea>
 
     <button class="field-row" id="editThemeRow">
       <span class="field-row-label" id="themeFieldLabel">Тема</span>
@@ -1108,7 +1108,9 @@
           <div class="clip-right">
             ${clip.pinned ? `<span class="clip-pin">⬆</span>` : ''}
             ${stale ? `<span class="clip-stale-dot" title="${t('checkFreshness')}"></span>` : ''}
-            <button class="clip-menu-btn" data-action="edit-clip" data-id="${clip.id}">•••</button>
+            <button class="clip-menu-btn" data-action="edit-clip" data-id="${clip.id}">
+              <svg width="16" height="4" viewBox="0 0 20 4" fill="currentColor"><circle cx="2" cy="2" r="2"></circle><circle cx="10" cy="2" r="2"></circle><circle cx="18" cy="2" r="2"></circle></svg>
+            </button>
           </div>
         </div>
         <div class="clip-text">${escapeHtml(clip.text)}</div>
