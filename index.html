@@ -251,9 +251,9 @@
   </div></div>
 
   <div id="attachPreviewSheet" class="sheet-overlay"><div class="sheet">
-    <div class="sheet-title" id="attachPreviewTitle">Вложение</div>
+    <input id="attachPreviewTitleInput" class="title-input" type="text" placeholder="Название (необязательно)" />
     <div id="attachPreviewMedia" style="border-radius:12px; overflow:hidden; background:#000; margin-bottom:14px; max-height:50vh; display:flex; align-items:center; justify-content:center; min-height:80px;"></div>
-    <div id="attachPreviewText" style="font-size:13px; color:var(--text-dim); margin-bottom:14px; line-height:1.4; display:none;"></div>
+    <textarea id="attachPreviewTextInput" rows="2" placeholder="Описание (необязательно)… можно с {переменными}"></textarea>
     <button class="sheet-btn" id="attachPreviewShareBtn">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line>
@@ -848,13 +848,8 @@
   async function openAttachPreview(clip) {
     previewClip = clip;
     const att = clip.attachment;
-    $('attachPreviewTitle').textContent = clip.title || t('attachmentTitle');
-    if (clip.text) {
-      $('attachPreviewText').textContent = clip.text;
-      $('attachPreviewText').style.display = 'block';
-    } else {
-      $('attachPreviewText').style.display = 'none';
-    }
+    $('attachPreviewTitleInput').value = clip.title || '';
+    $('attachPreviewTextInput').value = clip.text || '';
     const box = $('attachPreviewMedia');
     box.innerHTML = '';
     if (previewSheetObjectUrl) { URL.revokeObjectURL(previewSheetObjectUrl); previewSheetObjectUrl = null; }
@@ -1759,12 +1754,32 @@
     renderAll();
   };
   $('fillSheet').addEventListener('click', (e) => { if (e.target.id === 'fillSheet') $('fillSheet').classList.remove('open'); });
-  $('attachPreviewShareBtn').onclick = () => { if (previewClip) shareAttachment(previewClip); };
+  async function savePreviewFields() {
+    if (!previewClip) return;
+    const newTitle = $('attachPreviewTitleInput').value.trim();
+    const newText = $('attachPreviewTextInput').value.trim();
+    if (newTitle === (previewClip.title || '') && newText === (previewClip.text || '')) return; // ничего не поменялось
+    previewClip.title = newTitle;
+    previewClip.text = newText;
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid, 'clips', previewClip.id), {
+        title: newTitle, text: newText, updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Ошибка сохранения названия/описания:', err);
+    }
+  }
+  $('attachPreviewShareBtn').onclick = async () => {
+    await savePreviewFields();
+    if (previewClip) shareAttachment(previewClip);
+  };
   $('attachPreviewSheet').addEventListener('click', (e) => {
     if (e.target.id === 'attachPreviewSheet') {
+      savePreviewFields();
       $('attachPreviewSheet').classList.remove('open');
       $('attachPreviewMedia').innerHTML = ''; // остановить видео при закрытии
       if (previewSheetObjectUrl) { URL.revokeObjectURL(previewSheetObjectUrl); previewSheetObjectUrl = null; }
+      previewClip = null;
     }
   });
 
