@@ -172,6 +172,7 @@
 
   <div id="editSheet" class="sheet-overlay"><div class="sheet">
     <div class="sheet-title" id="editSheetTitle">Редактировать</div>
+    <div id="attachErrorBanner" style="display:none; background:rgba(181,101,75,0.15); border:1px solid var(--warn); color:var(--warn); font-size:12px; padding:8px 10px; border-radius:8px; margin-bottom:10px; line-height:1.4;"></div>
     <div class="edit-actions">
       <button class="edit-action-btn" id="editPinBtn">⬆ Top</button>
       <button class="edit-action-btn" id="editDupBtn">⧉ Дублировать</button>
@@ -883,16 +884,23 @@
   }
   $('attachFileBtn').onclick = () => $('fileInput').click();
   $('fileInput').onchange = (e) => {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (!file) return;
-    if (file.size > MAX_ATTACH_MB * 1024 * 1024) {
-      flashStatus(t('attachTooBig').replace('{n}', MAX_ATTACH_MB), 2500);
-      return;
+    try {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      $('attachErrorBanner').style.display = 'none';
+      if (file.size > MAX_ATTACH_MB * 1024 * 1024) {
+        flashStatus(t('attachTooBig').replace('{n}', MAX_ATTACH_MB), 2500);
+        return;
+      }
+      editPendingFile = file;
+      editAttachmentRemoved = false;
+      refreshAttachPreview();
+    } catch (err) {
+      console.error('Ошибка выбора файла:', err);
+      $('attachErrorBanner').textContent = t('attachSaveError') + ': ' + (err?.message || err);
+      $('attachErrorBanner').style.display = 'block';
     }
-    editPendingFile = file;
-    editAttachmentRemoved = false;
-    refreshAttachPreview();
   };
   $('removeFileBtn').onclick = () => {
     editPendingFile = null;
@@ -935,6 +943,7 @@
     refreshEditSheetFields();
     refreshAttachPreview();
     hideUploadProgress();
+    $('attachErrorBanner').style.display = 'none';
     $('editSheet').classList.add('open');
   }
   function openNewClipModal() {
@@ -949,6 +958,7 @@
     refreshEditSheetFields();
     refreshAttachPreview();
     hideUploadProgress();
+    $('attachErrorBanner').style.display = 'none';
     $('editSheet').classList.add('open');
   }
   function showUploadProgress(pct) {
@@ -984,8 +994,11 @@
     const title = $('editTitleInput').value.trim();
     if (!text) { $('editSheet').classList.remove('open'); return; }
     $('editSheetSave').disabled = true;
+    $('attachErrorBanner').style.display = 'none';
     let clipId = editingClipId;
     const oldAttachment = editingClipId === 'new' ? null : (clips.find((c) => c.id === editingClipId)?.attachment || null);
+
+    // Шаг 1: сохраняем текст/тему/раздел — это должно пройти почти всегда
     try {
       if (editingClipId === 'new') {
         const minOrder = Math.min(0, ...clips.map((c) => c.order ?? 0));
@@ -995,6 +1008,7 @@
           attachment: null,
         });
         clipId = docRef.id;
+        editingClipId = clipId; // чтобы повторное сохранение вложения после ошибки не создало вторую карточку
         flashStatus(t('addedOk'));
       } else {
         await updateDoc(doc(db, 'users', currentUser.uid, 'clips', editingClipId), {
@@ -1002,7 +1016,17 @@
         });
         flashStatus(t('savedOk'));
       }
+    } catch (err) {
+      console.error('Ошибка сохранения карточки:', err);
+      $('attachErrorBanner').textContent = t('attachSaveError') + (err?.code ? ` (${err.code})` : ': ' + (err?.message || err));
+      $('attachErrorBanner').style.display = 'block';
+      $('editSheetSave').disabled = false;
+      return; // текст не сохранился — точно не закрываем окно
+    }
 
+    // Шаг 2: если выбран новый файл — грузим его отдельно, ошибка тут не должна терять текст
+    let attachFailed = false;
+    try {
       if (editPendingFile) {
         const path = `users/${currentUser.uid}/clips/${clipId}/${Date.now()}_${editPendingFile.name}`;
         const sRef = storageRef(storage, path);
@@ -1019,12 +1043,19 @@
         if (oldAttachment.path) deleteObject(storageRef(storage, oldAttachment.path)).catch(() => {});
       }
     } catch (err) {
-      console.error(err);
-      flashStatus(t('attachSaveError') + (err?.code ? ` (${err.code})` : ''), 3000);
+      console.error('Ошибка загрузки вложения:', err);
+      attachFailed = true;
+      $('attachErrorBanner').textContent = t('attachSaveError') + (err?.code ? ` (${err.code})` : ': ' + (err?.message || err));
+      $('attachErrorBanner').style.display = 'block';
     }
     hideUploadProgress();
     $('editSheetSaveLabel').textContent = t('save');
     $('editSheetSave').disabled = false;
+
+    if (attachFailed) {
+      // Карточка с текстом уже сохранена, но файл не прикрепился — оставляем окно открытым, видна причина.
+      return;
+    }
     editingClipId = null;
     editPendingFile = null;
     editAttachmentRemoved = false;
