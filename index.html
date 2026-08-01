@@ -312,6 +312,7 @@
       <span class="field-row-label" id="signOutLabel" style="color:#A6685C;">Выйти</span>
       <span class="field-row-value"><span>›</span></span>
     </button>
+    <a href="privacy.html" target="_blank" rel="noopener" style="display:block; text-align:center; font-size:11.5px; color:var(--text-dim); text-decoration:underline; padding:16px 4px 4px;">Политика конфиденциальности</a>
   </div></div>
 
   <div id="categorySheet" class="sheet-overlay"><div class="sheet">
@@ -580,7 +581,7 @@
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
       templatesLabel: "Шаблоны", attachFilePrompt: "Прикрепить файл / фото / видео", attachFileReplace: "Заменить файл / фото / видео",
       attachHint: "Фото, видео, PDF, DOC — до 50 МБ на файл", attachTooBig: "Файл больше {n}МБ — выбери файл поменьше",
-      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение",
+      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение", attachPreparing: "Готовим файл…",
       themeNamePlaceholder: "Название темы…", create: "Создать", renameTitle: "Переименовать",
       renameThemeTitle: "Переименовать тему", renameStageTitle: "Переименовать раздел", namePlaceholder: "Название…",
       confirmTitle: "Удалить?", confirmOk: "Удалить", confirmCancel: "Отмена",
@@ -611,7 +612,7 @@
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
       templatesLabel: "Templates", attachFilePrompt: "Attach file / photo / video", attachFileReplace: "Replace file / photo / video",
       attachHint: "Photo, video, PDF, DOC — up to 50MB per file", attachTooBig: "File is larger than {n}MB — choose a smaller one",
-      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment",
+      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment", attachPreparing: "Preparing…",
       themeNamePlaceholder: "Theme name…", create: "Create", renameTitle: "Rename",
       renameThemeTitle: "Rename theme", renameStageTitle: "Rename section", namePlaceholder: "Name…",
       confirmTitle: "Delete?", confirmOk: "Delete", confirmCancel: "Cancel",
@@ -642,7 +643,7 @@
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
       templatesLabel: "Plantillas", attachFilePrompt: "Adjuntar archivo / foto / vídeo", attachFileReplace: "Reemplazar archivo / foto / vídeo",
       attachHint: "Foto, vídeo, PDF, DOC — hasta 50 MB por archivo", attachTooBig: "El archivo supera los {n}MB — elige uno más pequeño",
-      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto",
+      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", attachPreparing: "Preparando…",
       themeNamePlaceholder: "Nombre del tema…", create: "Crear", renameTitle: "Renombrar",
       renameThemeTitle: "Renombrar tema", renameStageTitle: "Renombrar sección", namePlaceholder: "Nombre…",
       confirmTitle: "¿Eliminar?", confirmOk: "Eliminar", confirmCancel: "Cancelar",
@@ -822,31 +823,56 @@
     await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { copyCount: (c?.copyCount || 0) + 1 });
   }
 
-  async function shareAttachment(clip) {
-    const att = clip.attachment;
-    try {
-      const resp = await fetch(att.url);
-      if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
-      const blob = await resp.blob();
-      const file = new File([blob], att.name || 'file', { type: att.type || blob.type });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: clip.text || undefined, title: clip.title || undefined });
-        await registerCopy(clip.id);
-        return;
+  async function shareClipNow(clip, cachedFile, btnEl, labelEl) {
+    let file = cachedFile;
+    if (!file) {
+      const originalLabel = labelEl ? labelEl.textContent : null;
+      if (btnEl) btnEl.disabled = true;
+      if (labelEl) labelEl.textContent = t('attachPreparing');
+      try {
+        const resp = await fetch(clip.attachment.url);
+        if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
+        const blob = await resp.blob();
+        file = new File([blob], clip.attachment.name || 'file', { type: clip.attachment.type || blob.type });
+      } catch (err) {
+        console.error('Не удалось подготовить файл для шаринга:', err);
       }
-    } catch (err) {
-      if (err?.name === 'AbortError') return; // пользователь сам закрыл системное окно "поделиться"
-      console.error('Ошибка шаринга вложения:', err);
+      if (btnEl) btnEl.disabled = false;
+      if (labelEl) labelEl.textContent = originalLabel;
     }
-    // Фолбэк, если Web Share недоступен или не сработал — открываем файл в новой вкладке
-    window.open(att.url, '_blank');
-    await registerCopy(clip.id);
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], text: clip.text || undefined, title: clip.title || undefined });
+        if (clip.id && clip.id !== 'new') await registerCopy(clip.id).catch(() => {});
+        return;
+      } catch (err) {
+        if (err?.name === 'AbortError') return; // пользователь сам закрыл системное окно "поделиться"
+        console.error('Ошибка шаринга вложения:', err);
+      }
+    }
+    // Финальный фолбэк, если Web Share недоступен или так и не сработал — открываем файл в новой вкладке
+    if (clip.attachment?.url) window.open(clip.attachment.url, '_blank');
+    if (clip.id && clip.id !== 'new') await registerCopy(clip.id).catch(() => {});
   }
 
   let previewClip = null;
   let previewSheetObjectUrl = null;
+  let previewFileCache = null; // { clipId, file } — готовый File, чтобы share() вызывался мгновенно, без ожидания сети
+  async function prefetchPreviewFile(clip) {
+    try {
+      const att = clip.attachment;
+      const resp = await fetch(att.url);
+      if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
+      const blob = await resp.blob();
+      if (previewClip !== clip) return; // пока грузили — уже переключились на другую карточку
+      previewFileCache = { clipId: clip.id, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
+    } catch (err) {
+      console.error('Не удалось подготовить файл для шаринга:', err);
+    }
+  }
   async function openAttachPreview(clip) {
     previewClip = clip;
+    previewFileCache = null;
     const att = clip.attachment;
     $('attachPreviewTitleInput').value = clip.title || '';
     $('attachPreviewTextInput').value = clip.text || '';
@@ -861,6 +887,7 @@
       box.innerHTML = `<div style="color:var(--text-dim); padding:30px; display:flex; flex-direction:column; align-items:center; gap:10px;">${fileIconSvg(att.type, 32)}<span style="font-size:12.5px;">${escapeHtml(att.name || '')}</span></div>`;
     }
     $('attachPreviewSheet').classList.add('open');
+    prefetchPreviewFile(clip); // не ждём — идёт в фоне, пока пользователь смотрит превью
   }
 
   async function handleCardClick(clip) {
@@ -946,8 +973,21 @@
       box.style.display = 'none';
     }
   }
+  let editAttachFileCache = null; // { url, file } — готовый File для мгновенного share() из карточки редактирования
+  async function prefetchEditAttachFile(att) {
+    try {
+      const resp = await fetch(att.url);
+      if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
+      const blob = await resp.blob();
+      if (!editDraftAttachment || editDraftAttachment.url !== att.url || editAttachmentRemoved || editPendingFile) return;
+      editAttachFileCache = { url: att.url, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
+    } catch (err) {
+      console.error('Не удалось подготовить файл для шаринга:', err);
+    }
+  }
   function refreshAttachPreview() {
     if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+    editAttachFileCache = null;
     const pending = editPendingFile;
     const existing = !editAttachmentRemoved ? editDraftAttachment : null;
     if (pending) {
@@ -965,6 +1005,7 @@
       $('attachFileLabel').textContent = t('attachFileReplace');
       renderPreviewMedia(existing.type, existing.url);
       $('editShareBtn').style.display = 'flex';
+      prefetchEditAttachFile(existing); // не ждём — идёт в фоне
     } else {
       $('filePreviewRow').style.display = 'none';
       $('attachFileLabel').textContent = t('attachFilePrompt');
@@ -973,34 +1014,21 @@
       $('editShareBtn').style.display = 'none';
     }
   }
-  async function shareCurrentEditAttachment() {
-    try {
-      let file;
-      if (editPendingFile) {
-        file = editPendingFile;
-      } else if (editDraftAttachment && !editAttachmentRemoved) {
-        const resp = await fetch(editDraftAttachment.url);
-        if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
-        const blob = await resp.blob();
-        file = new File([blob], editDraftAttachment.name || 'file', { type: editDraftAttachment.type || blob.type });
-      } else {
-        return;
-      }
-      const text = $('editSheetInput').value.trim();
-      const title = $('editTitleInput').value.trim();
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: text || undefined, title: title || undefined });
-        return;
-      }
-      const url = URL.createObjectURL(file);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (err) {
-      if (err?.name === 'AbortError') return;
-      console.error('Ошибка шаринга из карточки редактирования:', err);
-      $('attachErrorBanner').textContent = t('attachSaveError') + ': ' + (err?.message || err);
-      $('attachErrorBanner').style.display = 'block';
+  function shareCurrentEditAttachment() {
+    const text = $('editSheetInput').value.trim();
+    const title = $('editTitleInput').value.trim();
+    let file = null;
+    if (editPendingFile) {
+      file = editPendingFile; // уже готовый File, фетчить не надо
+    } else if (editDraftAttachment && !editAttachmentRemoved && editAttachFileCache && editAttachFileCache.url === editDraftAttachment.url) {
+      file = editAttachFileCache.file; // подготовлен заранее в фоне
     }
+    const clipLike = {
+      id: editingClipId,
+      text, title,
+      attachment: editPendingFile ? null : editDraftAttachment,
+    };
+    shareClipNow(clipLike, file, $('editShareBtn'), $('editShareLabel'));
   }
   $('editShareBtn').onclick = shareCurrentEditAttachment;
   $('attachFileBtn').onclick = () => $('fileInput').click();
@@ -1769,9 +1797,12 @@
       console.error('Ошибка сохранения названия/описания:', err);
     }
   }
-  $('attachPreviewShareBtn').onclick = async () => {
-    await savePreviewFields();
-    if (previewClip) shareAttachment(previewClip);
+  $('attachPreviewShareBtn').onclick = () => {
+    savePreviewFields(); // сохраняем в фоне, не блокируя жест "поделиться"
+    const clip = previewClip;
+    if (!clip) return;
+    const cached = previewFileCache && previewFileCache.clipId === clip.id ? previewFileCache.file : null;
+    shareClipNow(clip, cached, $('attachPreviewShareBtn'), $('attachPreviewShareLabel'));
   };
   $('attachPreviewSheet').addEventListener('click', (e) => {
     if (e.target.id === 'attachPreviewSheet') {
