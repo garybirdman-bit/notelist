@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#F4E8D0" />
-<link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <title>Sendlist</title>
 <style>
   :root {
@@ -14,6 +14,7 @@
     --card: #4E6B45;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  @keyframes progressSlide { 0% { left: -40%; } 100% { left: 100%; } }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: Roboto, -apple-system, "Segoe UI", sans-serif; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
   #loginScreen { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
@@ -127,14 +128,7 @@
 
   <div id="splashScreen"><span>Sendlist</span></div>
 
-  <div id="loginScreen" class="visible">
-    <h1 style="font-size:28px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;color:#4E6B45;margin:0;">Sendlist</h1>
-    <p>Войди через Google — темы и карточки синхронизируются между телефоном и компьютером.</p>
-    <button id="googleBtn">Войти через Google</button>
-    <p id="loginError" style="color:#A6685C; font-size:12px; display:none;"></p>
-  </div>
-
-  <div id="app">
+  <div id="app" class="visible">
     <div id="topBar">
       <button id="settingsBtn" title="Настройки">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -183,18 +177,6 @@
       <button id="insertBracesBtn" type="button" style="position:absolute; right:14px; bottom:16px; background:var(--bg-elevated); border:1px solid var(--line); color:var(--text-dim); font-size:13px; font-weight:700; padding:6px 14px; border-radius:8px; cursor:pointer; opacity:0.9;">{ }</button>
     </div>
 
-    <button class="field-row" id="editThemeRow">
-      <span class="field-row-label" id="themeFieldLabel">Тема</span>
-      <span class="field-row-value" id="editThemeValue">— <span id="editThemeChevron">›</span></span>
-    </button>
-    <div class="palette-grid" id="colorPickGrid" style="display:none;"></div>
-
-    <button class="field-row" id="editStageRow" style="display:none;">
-      <span class="field-row-label" id="sectionFieldLabel">Раздел</span>
-      <span class="field-row-value" id="editStageValue">— <span id="editStageChevron">›</span></span>
-    </button>
-    <div id="stagePickList" style="display:none;"></div>
-
     <input id="fileInput" type="file" accept="image/*,video/*,.pdf,.doc,.docx" style="display:none;" />
     <button id="attachFileBtn" type="button" class="field-row">
       <span class="field-row-label" style="display:flex; align-items:center; gap:8px;">
@@ -223,11 +205,23 @@
       <span class="field-row-value"><span>›</span></span>
     </button>
     <div id="uploadProgressRow" style="display:none; align-items:center; gap:8px; padding:2px 2px 12px;">
-      <div style="flex:1; height:4px; background:var(--line); border-radius:2px; overflow:hidden;">
-        <div id="uploadProgressBar" style="height:100%; width:0%; background:var(--accent); border-radius:2px; transition:width 0.2s ease;"></div>
+      <div style="flex:1; height:4px; background:var(--line); border-radius:2px; overflow:hidden; position:relative;">
+        <div id="uploadProgressBar" style="position:absolute; height:100%; width:40%; background:var(--accent); border-radius:2px; animation:progressSlide 1s ease-in-out infinite;"></div>
       </div>
-      <span id="uploadProgressPct" style="font-size:11px; color:var(--text-dim); min-width:34px; text-align:right;">0%</span>
+      <span id="uploadProgressPct" style="font-size:11px; color:var(--text-dim); min-width:60px; text-align:right;"></span>
     </div>
+
+    <button class="field-row" id="editThemeRow">
+      <span class="field-row-label" id="themeFieldLabel">Тема</span>
+      <span class="field-row-value" id="editThemeValue">— <span id="editThemeChevron">›</span></span>
+    </button>
+    <div class="palette-grid" id="colorPickGrid" style="display:none;"></div>
+
+    <button class="field-row" id="editStageRow" style="display:none;">
+      <span class="field-row-label" id="sectionFieldLabel">Раздел</span>
+      <span class="field-row-value" id="editStageValue">— <span id="editStageChevron">›</span></span>
+    </button>
+    <div id="stagePickList" style="display:none;"></div>
 
     <button class="sheet-btn" id="editSheetSave" style="margin-top:14px;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -308,10 +302,6 @@
       <span class="field-row-label" id="templatesFieldLabel">Шаблоны</span>
       <span class="field-row-value"><span>›</span></span>
     </button>
-    <button class="field-row" id="signOutRow">
-      <span class="field-row-label" id="signOutLabel" style="color:#A6685C;">Выйти</span>
-      <span class="field-row-value"><span>›</span></span>
-    </button>
     <a href="privacy.html" target="_blank" rel="noopener" id="privacyPolicyLink" style="display:block; text-align:center; font-size:11.5px; color:var(--text-dim); text-decoration:underline; padding:16px 4px 4px;">Политика конфиденциальности</a>
   </div></div>
 
@@ -355,36 +345,49 @@
   </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
-    onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDocs,
-    onSnapshot, query
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import {
-    getStorage, ref as storageRef, uploadBytes, uploadBytesResumable, getDownloadURL, deleteObject
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+<script>
+  // ТЕСТОВЫЙ РЕЖИМ: без Firebase/Google-логина, данные хранятся локально в браузере телефона
+  const STORAGE_KEY = 'quickReplies_state_v1';
+  // ==== ХРАНЕНИЕ ФАЙЛОВ ВЛОЖЕНИЙ (IndexedDB — localStorage слишком мал для видео) ====
+  const ATTACH_DB_NAME = 'sendlist_attachments';
+  const ATTACH_STORE = 'files';
+  function openAttachDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(ATTACH_DB_NAME, 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore(ATTACH_STORE); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbSet(key, blob) {
+    const db = await openAttachDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(ATTACH_STORE, 'readwrite');
+      tx.objectStore(ATTACH_STORE).put(blob, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function idbGet(key) {
+    const db = await openAttachDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(ATTACH_STORE, 'readonly');
+      const req = tx.objectStore(ATTACH_STORE).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbDelete(key) {
+    const db = await openAttachDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(ATTACH_STORE, 'readwrite');
+      tx.objectStore(ATTACH_STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDvRj58WnOZMRqa8B6YkELGhz8kTOlz0XY",
-    authDomain: "notelist-3dd60.firebaseapp.com",
-    projectId: "notelist-3dd60",
-    storageBucket: "notelist-3dd60.firebasestorage.app",
-    messagingSenderId: "96265651689",
-    appId: "1:96265651689:web:e54afeb02d3140c73cb778",
-  };
-
-  const fbApp = initializeApp(firebaseConfig);
-  const auth = getAuth(fbApp);
-  const db = getFirestore(fbApp);
-  const storage = getStorage(fbApp);
-  const MAX_ATTACH_MB = 50;
-
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
   const STALE_DAYS = 60;
   const NEW_CATEGORY_COLORS = ["#5B7C99", "#9C7A4E", "#6B5B95", "#7A8B5E", "#A6685C", "#5E7A7A", "#1F6F63", "#C97361"];
@@ -581,7 +584,7 @@
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
       templatesLabel: "Шаблоны", attachFilePrompt: "Прикрепить файл / фото / видео", attachFileReplace: "Заменить файл / фото / видео",
       attachHint: "Фото, видео, PDF, DOC — до 50 МБ на файл", attachTooBig: "Файл больше {n}МБ — выбери файл поменьше",
-      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение", privacyPolicyLabel: "Политика конфиденциальности", attachPreparing: "Готовим файл…",
+      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", shareLabel: "Поделиться", attachmentTitle: "Вложение", privacyPolicyLabel: "Политика конфиденциальности", attachPreparing: "Готовим файл…",
       themeNamePlaceholder: "Название темы…", create: "Создать", renameTitle: "Переименовать",
       renameThemeTitle: "Переименовать тему", renameStageTitle: "Переименовать раздел", namePlaceholder: "Название…",
       confirmTitle: "Удалить?", confirmOk: "Удалить", confirmCancel: "Отмена",
@@ -595,7 +598,7 @@
       deleteSection: "Удалить раздел", copiedOk: "Скопировано ✓", copyFail: "Не удалось скопировать — попробуй ещё раз",
       addedOk: "Добавлено ✓", savedOk: "Сохранено ✓", duplicateCreated: "Дубликат создан — отредактируй",
       markedFresh: "Отмечено как актуальное", keepOneTheme: "Должна остаться хотя бы одна тема",
-      notSelected: "не выбран", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Выйти",
+      notSelected: "не выбран", langRu: "Русский", langEn: "English", langEs: "Español",
       onboardingTitle: "Какая у вас сфера?",
       onboardingSubtitle: "Подберём готовый набор тем, разделов и примеров карточек под вашу работу — сразу видно, что умеет приложение. Всё можно изменить позже.",
       packDefaultTitle: "Обычный набор", packDefaultDesc: "Бизнес · Личное · Другое",
@@ -612,7 +615,7 @@
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
       templatesLabel: "Templates", attachFilePrompt: "Attach file / photo / video", attachFileReplace: "Replace file / photo / video",
       attachHint: "Photo, video, PDF, DOC — up to 50MB per file", attachTooBig: "File is larger than {n}MB — choose a smaller one",
-      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment", privacyPolicyLabel: "Privacy Policy", attachPreparing: "Preparing…",
+      attachSaveError: "Error saving file", attachNotFound: "File not found locally", shareLabel: "Share", attachmentTitle: "Attachment", privacyPolicyLabel: "Privacy Policy", attachPreparing: "Preparing…",
       themeNamePlaceholder: "Theme name…", create: "Create", renameTitle: "Rename",
       renameThemeTitle: "Rename theme", renameStageTitle: "Rename section", namePlaceholder: "Name…",
       confirmTitle: "Delete?", confirmOk: "Delete", confirmCancel: "Cancel",
@@ -626,7 +629,7 @@
       deleteSection: "Delete section", copiedOk: "Copied ✓", copyFail: "Couldn't copy — try again",
       addedOk: "Added ✓", savedOk: "Saved ✓", duplicateCreated: "Duplicate created — edit it",
       markedFresh: "Marked as up to date", keepOneTheme: "At least one theme must remain",
-      notSelected: "not selected", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Sign out",
+      notSelected: "not selected", langRu: "Русский", langEn: "English", langEs: "Español",
       onboardingTitle: "What's your field?",
       onboardingSubtitle: "We'll set up ready-made themes, sections, and example cards for your work — so you instantly see what the app can do. You can change everything later.",
       packDefaultTitle: "Generic set", packDefaultDesc: "Business · Personal · Other",
@@ -643,7 +646,7 @@
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
       templatesLabel: "Plantillas", attachFilePrompt: "Adjuntar archivo / foto / vídeo", attachFileReplace: "Reemplazar archivo / foto / vídeo",
       attachHint: "Foto, vídeo, PDF, DOC — hasta 50 MB por archivo", attachTooBig: "El archivo supera los {n}MB — elige uno más pequeño",
-      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", privacyPolicyLabel: "Política de privacidad", attachPreparing: "Preparando…",
+      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", privacyPolicyLabel: "Política de privacidad", attachPreparing: "Preparando…",
       themeNamePlaceholder: "Nombre del tema…", create: "Crear", renameTitle: "Renombrar",
       renameThemeTitle: "Renombrar tema", renameStageTitle: "Renombrar sección", namePlaceholder: "Nombre…",
       confirmTitle: "¿Eliminar?", confirmOk: "Eliminar", confirmCancel: "Cancelar",
@@ -657,7 +660,7 @@
       deleteSection: "Eliminar sección", copiedOk: "Copiado ✓", copyFail: "No se pudo copiar — inténtalo de nuevo",
       addedOk: "Añadido ✓", savedOk: "Guardado ✓", duplicateCreated: "Duplicado creado — edítalo",
       markedFresh: "Marcado como actualizado", keepOneTheme: "Debe quedar al menos un tema",
-      notSelected: "no seleccionado", langRu: "Русский", langEn: "English", langEs: "Español", signOut: "Cerrar sesión",
+      notSelected: "no seleccionado", langRu: "Русский", langEn: "English", langEs: "Español",
       onboardingTitle: "¿Cuál es tu campo?",
       onboardingSubtitle: "Prepararemos temas, secciones y tarjetas de ejemplo para tu trabajo — verás al instante lo que la app puede hacer. Todo se puede cambiar después.",
       packDefaultTitle: "Conjunto genérico", packDefaultDesc: "Negocio · Personal · Otro",
@@ -682,88 +685,46 @@
   let editingClipId = null;
   let fillModalClip = null;
   let fillModalValues = {};
-  let currentUser = null;
-  let unsubCats = null, unsubClips = null;
 
   const $ = (id) => document.getElementById(id);
 
-  $('googleBtn').onclick = async () => {
-    $('loginError').style.display = 'none';
+  function persist() {
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories, clips }));
     } catch (e) {
-      console.error('Ошибка входа (popup):', e.code, e.message);
-      if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request' || e.code === 'auth/popup-closed-by-user') {
-        try {
-          await signInWithRedirect(auth, new GoogleAuthProvider());
-        } catch (e2) {
-          $('loginError').textContent = 'Ошибка входа: ' + e2.message;
-          $('loginError').style.display = 'block';
-        }
-      } else {
-        $('loginError').textContent = 'Ошибка входа: ' + e.message;
-        $('loginError').style.display = 'block';
-      }
+      flashStatus('Локальное хранилище переполнено (тестовый режим не для больших файлов)', 3000);
     }
-  };
-  $('signOutRow').onclick = () => signOut(auth);
-  getRedirectResult(auth).catch((e) => {
-    console.error('Ошибка входа (redirect):', e.code, e.message);
-    $('loginError').textContent = 'Ошибка входа: ' + e.message;
-    $('loginError').style.display = 'block';
-  });
-
-  async function hasAnyCategories(uid) {
-    const snap = await getDocs(collection(db, 'users', uid, 'categories'));
-    return !snap.empty;
   }
 
-  async function applyPack(packId) {
+  function loadState() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch {}
+    if (saved && saved.categories && saved.clips) {
+      categories = saved.categories;
+      clips = saved.clips;
+      return true; // данные уже есть
+    }
+    return false; // данных нет — покажем выбор сферы
+  }
+
+  function applyPack(packId) {
     const pack = packId === 'teacher' ? buildTeacherPack(currentLang)
       : packId === 'realtor' ? buildRealtorPack(currentLang)
       : packId === 'funnel' ? buildFunnelPack(currentLang)
       : buildDefaultPack(currentLang);
-    for (const cat of pack.categories) {
-      await setDoc(doc(db, 'users', currentUser.uid, 'categories', cat.id), cat);
-    }
-    for (const clip of pack.clips) {
-      const { id, ...rest } = clip;
-      await setDoc(doc(db, 'users', currentUser.uid, 'clips', id), rest);
-    }
+    categories = pack.categories;
+    clips = pack.clips;
+    persist();
     $('onboardingSheet').classList.remove('open');
+    renderAll();
   }
 
-  function subscribe(uid) {
-    unsubCats = onSnapshot(query(collection(db, 'users', uid, 'categories')), (snap) => {
-      categories = snap.docs.map((d) => d.data()).sort((a, b) => (a.order || 0) - (b.order || 0));
-      renderAll();
-    });
-    unsubClips = onSnapshot(query(collection(db, 'users', uid, 'clips')), (snap) => {
-      clips = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      renderAll();
-    });
-  }
-
-  onAuthStateChanged(auth, async (user) => {
-    currentUser = user;
-    if (unsubCats) { unsubCats(); unsubCats = null; }
-    if (unsubClips) { unsubClips(); unsubClips = null; }
-    if (user) {
-      $('loginScreen').classList.remove('visible');
-      $('app').classList.add('visible');
-      const hasData = await hasAnyCategories(user.uid);
-      subscribe(user.uid);
-      if (!hasData) $('onboardingSheet').classList.add('open');
-    } else {
-      $('loginScreen').classList.add('visible');
-      $('app').classList.remove('visible');
-      categories = []; clips = [];
-    }
-    applyStaticTexts();
-    setTimeout(() => { $('splashScreen').classList.add('hidden'); }, 900);
-  });
-
+  const hasData = loadState();
+  applyStaticTexts();
+  renderAll();
+  if (!hasData) $('onboardingSheet').classList.add('open');
   try { initDragReorder(); } catch (e) { console.error('Перетаскивание недоступно:', e); }
+  setTimeout(() => { $('splashScreen').classList.add('hidden'); }, 900);
 
 
   function flashStatus(msg, ms = 1800) {
@@ -818,21 +779,21 @@
     }
   }
 
-  async function registerCopy(clipId) {
+  function registerCopy(clipId) {
     const c = clips.find((x) => x.id === clipId);
-    await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { copyCount: (c?.copyCount || 0) + 1 });
+    if (c) c.copyCount = (c.copyCount || 0) + 1;
+    persist();
   }
 
   async function shareClipNow(clip, cachedFile, btnEl, labelEl) {
     let file = cachedFile;
-    if (!file) {
+    if (!file && clip.attachment?.key) {
       const originalLabel = labelEl ? labelEl.textContent : null;
       if (btnEl) btnEl.disabled = true;
       if (labelEl) labelEl.textContent = t('attachPreparing');
       try {
-        const resp = await fetch(clip.attachment.url);
-        if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
-        const blob = await resp.blob();
+        const blob = await idbGet(clip.attachment.key);
+        if (!blob) throw new Error('файл не найден локально');
         file = new File([blob], clip.attachment.name || 'file', { type: clip.attachment.type || blob.type });
       } catch (err) {
         console.error('Не удалось подготовить файл для шаринга:', err);
@@ -843,33 +804,33 @@
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({ files: [file], text: clip.text || undefined, title: clip.title || undefined });
-        if (clip.id && clip.id !== 'new') await registerCopy(clip.id).catch(() => {});
+        if (clip.id && clip.id !== 'new') registerCopy(clip.id);
+        renderAll();
         return;
       } catch (err) {
         if (err?.name === 'AbortError') return; // пользователь сам закрыл системное окно "поделиться"
         console.error('Ошибка шаринга вложения:', err);
       }
     }
-    // Финальный фолбэк, если Web Share недоступен или так и не сработал — открываем файл в новой вкладке
-    if (clip.attachment?.url) window.open(clip.attachment.url, '_blank');
-    if (clip.id && clip.id !== 'new') await registerCopy(clip.id).catch(() => {});
+    if (file) {
+      // Финальный фолбэк, если Web Share недоступен — открываем/скачиваем файл
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      if (file.type?.startsWith('image/') || file.type?.startsWith('video/') || file.type === 'application/pdf') a.target = '_blank';
+      else a.download = file.name || 'file';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } else {
+      flashStatus(t('attachNotFound'), 2500);
+    }
+    if (clip.id && clip.id !== 'new') registerCopy(clip.id);
+    renderAll();
   }
 
   let previewClip = null;
   let previewSheetObjectUrl = null;
-  let previewFileCache = null; // { clipId, file } — готовый File, чтобы share() вызывался мгновенно, без ожидания сети
-  async function prefetchPreviewFile(clip) {
-    try {
-      const att = clip.attachment;
-      const resp = await fetch(att.url);
-      if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
-      const blob = await resp.blob();
-      if (previewClip !== clip) return; // пока грузили — уже переключились на другую карточку
-      previewFileCache = { clipId: clip.id, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
-    } catch (err) {
-      console.error('Не удалось подготовить файл для шаринга:', err);
-    }
-  }
+  let previewFileCache = null; // { clipId, file } — готовый File для мгновенного share() без ожидания
   async function openAttachPreview(clip) {
     previewClip = clip;
     previewFileCache = null;
@@ -879,15 +840,25 @@
     const box = $('attachPreviewMedia');
     box.innerHTML = '';
     if (previewSheetObjectUrl) { URL.revokeObjectURL(previewSheetObjectUrl); previewSheetObjectUrl = null; }
-    if (att.type?.startsWith('image/')) {
-      box.innerHTML = `<img src="${att.url}" style="width:100%; max-height:50vh; object-fit:contain; display:block;">`;
-    } else if (att.type?.startsWith('video/')) {
-      box.innerHTML = `<video src="${att.url}" controls playsinline autoplay style="width:100%; max-height:50vh; display:block;"></video>`;
+    $('attachPreviewSheet').classList.add('open');
+    if (att.type?.startsWith('image/') || att.type?.startsWith('video/')) {
+      try {
+        const blob = await idbGet(att.key);
+        if (previewClip !== clip || !blob) return; // окно уже закрыли/сменили, не подставляем устаревшее видео
+        previewSheetObjectUrl = URL.createObjectURL(blob);
+        previewFileCache = { clipId: clip.id, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
+        if (att.type?.startsWith('image/')) {
+          box.innerHTML = `<img src="${previewSheetObjectUrl}" style="width:100%; max-height:50vh; object-fit:contain; display:block;">`;
+        } else {
+          box.innerHTML = `<video src="${previewSheetObjectUrl}" controls playsinline autoplay style="width:100%; max-height:50vh; display:block;"></video>`;
+        }
+      } catch (err) {
+        console.error('Не удалось загрузить превью:', err);
+        box.innerHTML = `<div style="color:var(--text-dim); padding:30px;">${t('attachNotFound')}</div>`;
+      }
     } else {
       box.innerHTML = `<div style="color:var(--text-dim); padding:30px; display:flex; flex-direction:column; align-items:center; gap:10px;">${fileIconSvg(att.type, 32)}<span style="font-size:12.5px;">${escapeHtml(att.name || '')}</span></div>`;
     }
-    $('attachPreviewSheet').classList.add('open');
-    prefetchPreviewFile(clip); // не ждём — идёт в фоне, пока пользователь смотрит превью
   }
 
   async function handleCardClick(clip) {
@@ -903,47 +874,60 @@
       $('fillSheet').classList.add('open');
     } else {
       const ok = await copyText(clip.text);
-      await registerCopy(clip.id);
+      registerCopy(clip.id);
       flashStatus(ok ? t('copiedOk') : t('copyFail'), ok ? 1800 : 2800);
+      renderAll();
     }
   }
 
-  async function assignCategory(clipId, categoryId) {
-    await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { categoryId, stageId: null });
-    menuOpenId = null;
+  function assignCategory(clipId, categoryId) {
+    const c = clips.find((x) => x.id === clipId);
+    if (c) { c.categoryId = categoryId; c.stageId = null; }
+    persist();
+    menuOpenId = null; renderAll();
   }
-  async function assignStage(clipId, stageId) {
-    await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { stageId });
-    menuOpenId = null;
+  function assignStage(clipId, stageId) {
+    const c = clips.find((x) => x.id === clipId);
+    if (c) c.stageId = stageId;
+    persist();
+    menuOpenId = null; renderAll();
   }
-  async function deleteClip(id) {
+  function deleteClip(id) {
     const clip = clips.find((c) => c.id === id);
-    await deleteDoc(doc(db, 'users', currentUser.uid, 'clips', id));
-    if (clip?.attachment?.path) deleteObject(storageRef(storage, clip.attachment.path)).catch(() => {});
-    menuOpenId = null;
+    clips = clips.filter((c) => c.id !== id);
+    persist();
+    if (clip?.attachment?.key) idbDelete(clip.attachment.key).catch(() => {});
+    menuOpenId = null; renderAll();
   }
-  async function duplicateClip(clip) {
+  function duplicateClip(clip) {
     const { id, ...rest } = clip;
     const minOrder = Math.min(0, ...clips.map((c) => c.order ?? 0));
-    await addDoc(collection(db, 'users', currentUser.uid, 'clips'), { ...rest, copyCount: 0, order: minOrder - 1, updatedAt: new Date().toISOString() });
+    clips.unshift({ ...rest, id: 'clip' + Date.now(), copyCount: 0, order: minOrder - 1, updatedAt: new Date().toISOString() });
+    persist();
     menuOpenId = null;
     flashStatus(t('duplicateCreated'));
+    renderAll();
   }
-  async function togglePin(clipId) {
+  function togglePin(clipId) {
     const c = clips.find((x) => x.id === clipId);
-    await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { pinned: !c.pinned });
-    menuOpenId = null;
+    if (c) c.pinned = !c.pinned;
+    persist();
+    menuOpenId = null; renderAll();
   }
-  async function markRefreshed(clipId) {
-    await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { updatedAt: new Date().toISOString() });
+  function markRefreshed(clipId) {
+    const c = clips.find((x) => x.id === clipId);
+    if (c) c.updatedAt = new Date().toISOString();
+    persist();
     menuOpenId = null;
     flashStatus(t('markedFresh'));
+    renderAll();
   }
   let editDraftCategory = null; // временный выбор темы/этапа для карточки, которая ещё не сохранена
   let editDraftStage = null;
-  let editPendingFile = null;      // File, выбранный пользователем в этой сессии редактирования (ещё не загружен)
-  let editDraftAttachment = null;  // текущее сохранённое вложение { url, path, name, type, size } или null
-  let editAttachmentRemoved = false; // пользователь явно нажал ✕ на существующем вложении
+  let editPendingFile = null;      // File — выбран в этой сессии, ещё не сохранён в IndexedDB
+  let editDraftAttachment = null;  // текущее сохранённое вложение { name, type, size, key } или null (key — ссылка на blob в IndexedDB)
+  let editAttachmentRemoved = false;
+  const MAX_ATTACH_MB = 50; // тестовый режим хранит файлы в IndexedDB (не localStorage), лимит как в проде
 
   function fileIconSvg(type, size) {
     const s = size || 20;
@@ -960,6 +944,8 @@
     return `<svg ${attrs}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>`;
   }
   let previewObjectUrl = null; // для отзыва blob-URL превью, чтобы не текла память
+  let editAttachFileCache = null; // готовый File для мгновенного share() из карточки редактирования
+  let previewToken = 0; // защита от гонки, если пользователь быстро переключает файлы
   function renderPreviewMedia(type, url) {
     const box = $('filePreviewMedia');
     if (type?.startsWith('image/')) {
@@ -973,21 +959,10 @@
       box.style.display = 'none';
     }
   }
-  let editAttachFileCache = null; // { url, file } — готовый File для мгновенного share() из карточки редактирования
-  async function prefetchEditAttachFile(att) {
-    try {
-      const resp = await fetch(att.url);
-      if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
-      const blob = await resp.blob();
-      if (!editDraftAttachment || editDraftAttachment.url !== att.url || editAttachmentRemoved || editPendingFile) return;
-      editAttachFileCache = { url: att.url, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
-    } catch (err) {
-      console.error('Не удалось подготовить файл для шаринга:', err);
-    }
-  }
-  function refreshAttachPreview() {
+  async function refreshAttachPreview() {
     if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
     editAttachFileCache = null;
+    const myToken = ++previewToken;
     const pending = editPendingFile;
     const existing = !editAttachmentRemoved ? editDraftAttachment : null;
     if (pending) {
@@ -1003,9 +978,20 @@
       $('filePreviewThumb').innerHTML = fileIconSvg(existing.type);
       $('filePreviewName').textContent = existing.name;
       $('attachFileLabel').textContent = t('attachFileReplace');
-      renderPreviewMedia(existing.type, existing.url);
+      $('filePreviewMedia').style.display = 'none';
+      $('filePreviewMedia').innerHTML = '';
       $('editShareBtn').style.display = 'flex';
-      prefetchEditAttachFile(existing); // не ждём — идёт в фоне
+      if (existing.type?.startsWith('image/') || existing.type?.startsWith('video/')) {
+        try {
+          const blob = await idbGet(existing.key);
+          if (myToken !== previewToken || !blob) return; // пока грузили — уже открыли другую карточку/файл
+          previewObjectUrl = URL.createObjectURL(blob);
+          renderPreviewMedia(existing.type, previewObjectUrl);
+          editAttachFileCache = { key: existing.key, file: new File([blob], existing.name || 'file', { type: existing.type || blob.type }) };
+        } catch (err) {
+          console.error('Не удалось загрузить превью:', err);
+        }
+      }
     } else {
       $('filePreviewRow').style.display = 'none';
       $('attachFileLabel').textContent = t('attachFilePrompt');
@@ -1019,8 +1005,8 @@
     const title = $('editTitleInput').value.trim();
     let file = null;
     if (editPendingFile) {
-      file = editPendingFile; // уже готовый File, фетчить не надо
-    } else if (editDraftAttachment && !editAttachmentRemoved && editAttachFileCache && editAttachFileCache.url === editDraftAttachment.url) {
+      file = editPendingFile; // уже готовый File
+    } else if (editDraftAttachment && !editAttachmentRemoved && editAttachFileCache && editAttachFileCache.key === editDraftAttachment.key) {
       file = editAttachFileCache.file; // подготовлен заранее в фоне
     }
     const clipLike = {
@@ -1039,10 +1025,10 @@
       if (!file) return;
       $('attachErrorBanner').style.display = 'none';
       if (file.size > MAX_ATTACH_MB * 1024 * 1024) {
-        flashStatus(t('attachTooBig').replace('{n}', MAX_ATTACH_MB), 2500);
+        flashStatus(t('attachTooBig').replace('{n}', MAX_ATTACH_MB), 3000);
         return;
       }
-      editPendingFile = file;
+      editPendingFile = file; // храним сам File до сохранения, отдельно кладём в IndexedDB
       editAttachmentRemoved = false;
       refreshAttachPreview();
     } catch (err) {
@@ -1091,7 +1077,7 @@
     editAttachmentRemoved = false;
     refreshEditSheetFields();
     refreshAttachPreview();
-    hideUploadProgress();
+    $('uploadProgressRow').style.display = 'none';
     $('attachErrorBanner').style.display = 'none';
     $('editSheet').classList.add('open');
   }
@@ -1106,39 +1092,10 @@
     editAttachmentRemoved = false;
     refreshEditSheetFields();
     refreshAttachPreview();
-    hideUploadProgress();
+    $('uploadProgressRow').style.display = 'none';
     $('attachErrorBanner').style.display = 'none';
     $('editSheet').classList.add('open');
   }
-  function showUploadProgress(pct) {
-    $('uploadProgressRow').style.display = 'flex';
-    $('uploadProgressBar').style.width = Math.round(pct) + '%';
-    $('uploadProgressPct').textContent = Math.round(pct) + '%';
-    $('attachFileBtn').style.pointerEvents = 'none';
-    $('attachFileBtn').style.opacity = '0.5';
-    $('removeFileBtn').style.pointerEvents = 'none';
-    $('removeFileBtn').style.opacity = '0.5';
-    $('editSheetSave').scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }
-  function hideUploadProgress() {
-    $('uploadProgressRow').style.display = 'none';
-    $('uploadProgressBar').style.width = '0%';
-    $('attachFileBtn').style.pointerEvents = '';
-    $('attachFileBtn').style.opacity = '';
-    $('removeFileBtn').style.pointerEvents = '';
-    $('removeFileBtn').style.opacity = '';
-  }
-  function uploadWithProgress(sRef, file) {
-    return new Promise((resolve, reject) => {
-      const task = uploadBytesResumable(sRef, file);
-      task.on('state_changed',
-        (snap) => showUploadProgress((snap.bytesTransferred / snap.totalBytes) * 100),
-        (err) => reject(err),
-        () => resolve(task.snapshot)
-      );
-    });
-  }
-
   async function saveEditSheet() {
     const text = $('editSheetInput').value.trim();
     const title = $('editTitleInput').value.trim();
@@ -1150,72 +1107,77 @@
       return;
     }
     $('editSheetSave').disabled = true;
-    $('attachErrorBanner').style.display = 'none';
+
     let clipId = editingClipId;
     const oldAttachment = editingClipId === 'new' ? null : (clips.find((c) => c.id === editingClipId)?.attachment || null);
+    let attachment = editAttachmentRemoved ? null : (editPendingFile ? oldAttachment : editDraftAttachment);
 
-    // Шаг 1: сохраняем текст/тему/раздел — это должно пройти почти всегда
-    try {
-      if (editingClipId === 'new') {
-        const minOrder = Math.min(0, ...clips.map((c) => c.order ?? 0));
-        const docRef = await addDoc(collection(db, 'users', currentUser.uid, 'clips'), {
-          title, text, categoryId: editDraftCategory, stageId: editDraftStage,
-          copyCount: 0, pinned: false, order: minOrder - 1, updatedAt: new Date().toISOString(),
-          attachment: null,
-        });
-        clipId = docRef.id;
-        editingClipId = clipId; // чтобы повторное сохранение вложения после ошибки не создало вторую карточку
-        flashStatus(t('addedOk'));
-      } else {
-        await updateDoc(doc(db, 'users', currentUser.uid, 'clips', editingClipId), {
-          title, text, categoryId: editDraftCategory, stageId: editDraftStage, updatedAt: new Date().toISOString(),
-        });
-        flashStatus(t('savedOk'));
-      }
-    } catch (err) {
-      console.error('Ошибка сохранения карточки:', err);
-      $('attachErrorBanner').textContent = t('attachSaveError') + (err?.code ? ` (${err.code})` : ': ' + (err?.message || err));
-      $('attachErrorBanner').style.display = 'block';
-      $('editSheetSave').disabled = false;
-      return; // текст не сохранился — точно не закрываем окно
+    if (editingClipId === 'new') {
+      clipId = 'clip' + Date.now();
+      const minOrder = Math.min(0, ...clips.map((c) => c.order ?? 0));
+      clips.unshift({
+        id: clipId, title, text, categoryId: editDraftCategory, stageId: editDraftStage,
+        copyCount: 0, pinned: false, order: minOrder - 1, updatedAt: new Date().toISOString(), attachment: null,
+      });
+      flashStatus(t('addedOk'));
+    } else {
+      const c = clips.find((x) => x.id === editingClipId);
+      if (c) { c.title = title; c.text = text; c.categoryId = editDraftCategory; c.stageId = editDraftStage; c.updatedAt = new Date().toISOString(); }
+      flashStatus(t('savedOk'));
     }
 
-    // Шаг 2: если выбран новый файл — грузим его отдельно, ошибка тут не должна терять текст
     let attachFailed = false;
     try {
       if (editPendingFile) {
-        const path = `users/${currentUser.uid}/clips/${clipId}/${Date.now()}_${editPendingFile.name}`;
-        const sRef = storageRef(storage, path);
+        if (!window.indexedDB) {
+          throw new Error('IndexedDB недоступен в этом браузере/режиме просмотра');
+        }
+        const key = clipId + '_' + Date.now();
         $('editSheetSaveLabel').textContent = t('attachUploading');
-        showUploadProgress(0);
-        await uploadWithProgress(sRef, editPendingFile);
-        const url = await getDownloadURL(sRef);
-        await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), {
-          attachment: { url, path, name: editPendingFile.name, type: editPendingFile.type, size: editPendingFile.size },
-        });
-        if (oldAttachment?.path) deleteObject(storageRef(storage, oldAttachment.path)).catch(() => {});
-      } else if (editAttachmentRemoved && oldAttachment) {
-        await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { attachment: null });
-        if (oldAttachment.path) deleteObject(storageRef(storage, oldAttachment.path)).catch(() => {});
+        $('uploadProgressRow').style.display = 'flex';
+        $('uploadProgressPct').textContent = t('attachUploading');
+        $('attachFileBtn').style.pointerEvents = 'none';
+        $('attachFileBtn').style.opacity = '0.5';
+        $('removeFileBtn').style.pointerEvents = 'none';
+        $('removeFileBtn').style.opacity = '0.5';
+        $('editSheetSave').scrollIntoView({ behavior: 'smooth', block: 'end' });
+        await idbSet(key, editPendingFile);
+        attachment = { name: editPendingFile.name, type: editPendingFile.type, size: editPendingFile.size, key };
+        if (oldAttachment?.key) idbDelete(oldAttachment.key).catch(() => {});
+      } else if (editAttachmentRemoved && oldAttachment?.key) {
+        idbDelete(oldAttachment.key).catch(() => {});
       }
     } catch (err) {
-      console.error('Ошибка загрузки вложения:', err);
+      console.error('Ошибка сохранения вложения:', err);
       attachFailed = true;
-      $('attachErrorBanner').textContent = t('attachSaveError') + (err?.code ? ` (${err.code})` : ': ' + (err?.message || err));
+      $('attachErrorBanner').textContent = t('attachSaveError') + ': ' + (err?.message || err);
       $('attachErrorBanner').style.display = 'block';
     }
-    hideUploadProgress();
+    $('uploadProgressRow').style.display = 'none';
+    $('attachFileBtn').style.pointerEvents = '';
+    $('attachFileBtn').style.opacity = '';
+    $('removeFileBtn').style.pointerEvents = '';
+    $('removeFileBtn').style.opacity = '';
     $('editSheetSaveLabel').textContent = t('save');
-    $('editSheetSave').disabled = false;
 
     if (attachFailed) {
-      // Карточка с текстом уже сохранена, но файл не прикрепился — оставляем окно открытым, видна причина.
+      // Не закрываем окно — карточка (текст/тема) уже сохранена выше, но вложение не прикрепилось.
+      // Пользователь видит причину и может попробовать другой файл или повторить.
+      $('editSheetSave').disabled = false;
+      renderAll();
       return;
     }
+
+    const c = clips.find((x) => x.id === clipId);
+    if (c) c.attachment = attachment;
+    persist();
+
+    $('editSheetSave').disabled = false;
     editingClipId = null;
     editPendingFile = null;
     editAttachmentRemoved = false;
     $('editSheet').classList.remove('open');
+    renderAll();
   }
 
   function toggleColorPick() {
@@ -1271,25 +1233,24 @@
     $('editStageChevron').textContent = '⌄';
   }
 
-  async function addCategory(label) {
+  function addCategory(label) {
     const trimmed = label.trim().slice(0, 16);
     if (!trimmed) return;
     const color = NEW_CATEGORY_COLORS[categories.length % NEW_CATEGORY_COLORS.length];
     const id = 'cat' + Date.now();
-    await setDoc(doc(db, 'users', currentUser.uid, 'categories', id), { id, label: trimmed, color, order: categories.length, stages: [] });
+    categories.push({ id, label: trimmed, color, order: categories.length, stages: [] });
+    persist();
     $('categorySheetInput').value = '';
     $('categorySheet').classList.remove('open');
     selectCategory(id);
   }
-  async function deleteCategory(id) {
+  function deleteCategory(id) {
     if (categories.length <= 1) { flashStatus(t('keepOneTheme')); return; }
     const fallback = categories.find((c) => c.id !== id).id;
-    await deleteDoc(doc(db, 'users', currentUser.uid, 'categories', id));
-    const affected = clips.filter((c) => c.categoryId === id);
-    for (const c of affected) {
-      await updateDoc(doc(db, 'users', currentUser.uid, 'clips', c.id), { categoryId: fallback, stageId: null });
-    }
-    if (activeCategory === id) selectCategory('all');
+    categories = categories.filter((c) => c.id !== id);
+    clips.forEach((c) => { if (c.categoryId === id) { c.categoryId = fallback; c.stageId = null; } });
+    persist();
+    if (activeCategory === id) selectCategory('all'); else renderAll();
   }
   let renameTarget = null; // { type: 'category'|'stage', id, categoryId }
   let confirmCallback = null;
@@ -1308,24 +1269,23 @@
     $('renameSheetInput').value = cat.label;
     $('renameSheet').classList.add('open');
   }
-  async function addStage(categoryId, label) {
+  function addStage(categoryId, label) {
     const trimmed = label.trim().slice(0, 18);
     if (!trimmed) return null;
     const cat = catById(categoryId);
     const id = 'stage' + Date.now();
-    const stages = [...(cat.stages || []), { id, label: trimmed }];
-    await updateDoc(doc(db, 'users', currentUser.uid, 'categories', categoryId), { stages });
+    cat.stages = [...(cat.stages || []), { id, label: trimmed }];
+    persist();
+    renderAll();
     return id;
   }
-  async function deleteStage(categoryId, stageId) {
+  function deleteStage(categoryId, stageId) {
     const cat = catById(categoryId);
-    const stages = (cat.stages || []).filter((s) => s.id !== stageId);
-    await updateDoc(doc(db, 'users', currentUser.uid, 'categories', categoryId), { stages });
-    const affected = clips.filter((c) => c.stageId === stageId);
-    for (const c of affected) {
-      await updateDoc(doc(db, 'users', currentUser.uid, 'clips', c.id), { stageId: null });
-    }
+    cat.stages = (cat.stages || []).filter((s) => s.id !== stageId);
+    clips.forEach((c) => { if (c.stageId === stageId) c.stageId = null; });
     if (activeStage === stageId) activeStage = 'all';
+    persist();
+    renderAll();
   }
   function renameStage(categoryId, stageId) {
     const cat = catById(categoryId);
@@ -1337,25 +1297,30 @@
     $('renameSheet').classList.add('open');
   }
 
-  async function applyRename() {
+  function applyRename() {
     if (!renameTarget) { $('renameSheet').classList.remove('open'); return; }
     const next = $('renameSheetInput').value.trim();
     if (!next) { $('renameSheet').classList.remove('open'); renameTarget = null; return; }
     if (renameTarget.type === 'category') {
-      await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.id), { label: next.slice(0, 16) });
+      const cat = catById(renameTarget.id);
+      if (cat) cat.label = next.slice(0, 16);
     } else {
       const cat = catById(renameTarget.categoryId);
-      const stages = (cat?.stages || []).map((s) => (s.id === renameTarget.id ? { ...s, label: next.slice(0, 18) } : s));
-      await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.categoryId), { stages });
+      const stage = cat?.stages.find((s) => s.id === renameTarget.id);
+      if (stage) stage.label = next.slice(0, 18);
     }
-    // обновляем открытую вспомогательную панель, если она сейчас видна (данные подтянутся через onSnapshot чуть позже)
-    setTimeout(() => {
-      if ($('stagesSheet').classList.contains('open')) renderStagesSheet();
-      if ($('listDropdown').classList.contains('open')) renderDropdown();
-      if ($('stagePickList').style.display !== 'none' && $('editSheet').classList.contains('open')) {
-        renderStagePickList();
-      }
-    }, 300);
+    persist();
+    renderAll();
+    // обновляем открытую вспомогательную панель, если она сейчас видна
+    if ($('stagesSheet').classList.contains('open')) renderStagesSheet();
+    if ($('listDropdown').classList.contains('open')) renderDropdown();
+    if ($('stagePickList').style.display !== 'none' && $('editSheet').classList.contains('open')) {
+      renderStagePickList();
+      const cat = catById(editDraftCategory);
+      const stage = cat?.stages.find((s) => s.id === editDraftStage);
+      if (stage) $('editStageValue').innerHTML = `${escapeHtml(stage.label)} <span id="editStageChevron">⌄</span>`;
+      else if (editDraftCategory) $('editThemeValue').innerHTML = `${escapeHtml(catById(editDraftCategory)?.label || '—')} <span id="editThemeChevron">›</span>`;
+    }
     $('renameSheet').classList.remove('open');
     renameTarget = null;
   }
@@ -1401,7 +1366,6 @@
     $('packRealtorTitle').textContent = t('packRealtorTitle');
     $('packRealtorDesc').textContent = t('packRealtorDesc');
     $('stagesSheetInput').placeholder = t('newSectionPlaceholder');
-    $('signOutLabel').textContent = t('signOut');
   }
 
   // ==== РЕНДЕР ====
@@ -1567,15 +1531,13 @@
       animation: 200,             // плавное расступание карточек — из коробки
       ghostClass: 'drag-ghost',   // полупрозрачный контур на месте, куда встанет карточка
       chosenClass: 'drag-chosen', // сама перетаскиваемая карточка
-      onEnd: async () => {
+      onEnd: () => {
         const ids = [...grid.querySelectorAll('.clip-card')].map((el) => el.dataset.id);
-        for (let i = 0; i < ids.length; i++) {
-          const c = clips.find((x) => x.id === ids[i]);
-          if (c && c.order !== i) {
-            c.order = i;
-            await updateDoc(doc(db, 'users', currentUser.uid, 'clips', ids[i]), { order: i });
-          }
-        }
+        ids.forEach((id, i) => {
+          const c = clips.find((x) => x.id === id);
+          if (c) c.order = i;
+        });
+        persist();
       },
     });
   }
@@ -1644,7 +1606,7 @@
     const id = btn.dataset.id;
 
     switch (action) {
-      case 'choose-pack': await applyPack(btn.dataset.pack); break;
+      case 'choose-pack': applyPack(btn.dataset.pack); break;
       case 'select-cat': selectCategory(id); $('listDropdown').classList.remove('open'); break;
       case 'select-cat-stage': {
         activeCategory = btn.dataset.cat;
@@ -1664,7 +1626,24 @@
         break;
       }
       case 'edit-clip': { const clip = clips.find((c) => c.id === id); if (clip) openEditModal(clip); break; }
-      case 'open-attachment': { const clip = clips.find((c) => c.id === id); if (clip?.attachment?.url) window.open(clip.attachment.url, '_blank'); break; }
+      case 'open-attachment': {
+        const clip = clips.find((c) => c.id === id);
+        if (clip?.attachment?.key) {
+          const blob = await idbGet(clip.attachment.key);
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            if (clip.attachment.type?.startsWith('image/') || clip.attachment.type?.startsWith('video/') || clip.attachment.type === 'application/pdf') a.target = '_blank';
+            else a.download = clip.attachment.name || 'file';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+          } else {
+            flashStatus(t('attachNotFound'), 2500);
+          }
+        }
+        break;
+      }
       case 'toggle-pin': await togglePin(id); break;
       case 'duplicate-clip': { const clip = clips.find((c) => c.id === id); await duplicateClip(clip); break; }
       case 'mark-fresh': await markRefreshed(id); break;
@@ -1684,6 +1663,7 @@
     const insert = `{${selected}}`;
     ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
     ta.focus();
+    // курсор — внутри скобок; если что-то было выделено, оно уже внутри — ставим курсор сразу после него
     const cursorPos = selected ? start + insert.length - 1 : start + 1;
     ta.setSelectionRange(cursorPos, cursorPos);
   };
@@ -1701,7 +1681,7 @@
     refreshEditSheetFields();
   });
 
-  $('stagePickList').addEventListener('click', async (e) => {
+  $('stagePickList').addEventListener('click', (e) => {
     const renameBtn = e.target.closest('[data-rename-stage]');
     if (renameBtn) {
       renameStage(editDraftCategory, renameBtn.dataset.renameStage);
@@ -1710,34 +1690,31 @@
     const delBtn = e.target.closest('[data-del-stage]');
     if (delBtn) {
       const stageId = delBtn.dataset.delStage;
-      askConfirm(t('confirmDeleteStage'), async () => {
-        const cat = catById(editDraftCategory);
-        if (cat) cat.stages = (cat.stages || []).filter((s) => s.id !== stageId); // мгновенно локально
+      askConfirm(t('confirmDeleteStage'), () => {
+        deleteStage(editDraftCategory, stageId);
         if (editDraftStage === stageId) editDraftStage = null;
         renderStagePickList();
+        const cat = catById(editDraftCategory);
         const stages = cat?.stages || [];
         if (stages.length === 0) {
+          // разделов не осталось — сворачиваем панель и убираем строку "Раздел" целиком
           $('stagePickList').style.display = 'none';
           $('editStageRow').style.display = 'none';
         } else {
           const stage = stages.find((s) => s.id === editDraftStage);
           $('editStageValue').innerHTML = `${escapeHtml(stage?.label || t('notSelected'))} <span id="editStageChevron">⌄</span>`;
         }
-        await deleteStage(editDraftCategory, stageId); // подтверждаем на сервере
       });
       return;
     }
     const addBtn = e.target.closest('#newStageInlineAdd');
     if (addBtn) {
       const val = $('newStageInline').value;
-      const trimmed = val.trim().slice(0, 18);
-      if (!trimmed) return;
-      const newId = await addStage(editDraftCategory, val);
+      const newId = addStage(editDraftCategory, val);
       if (newId) {
-        const cat = catById(editDraftCategory);
-        if (cat && !(cat.stages || []).find((s) => s.id === newId)) cat.stages = [...(cat.stages || []), { id: newId, label: trimmed }];
         editDraftStage = newId;
-        renderStagePickList();
+        renderStagePickList(); // обновляем список — новый этап уже виден и отмечен
+        const cat = catById(editDraftCategory);
         const stage = cat.stages.find((s) => s.id === newId);
         $('editStageValue').innerHTML = `${escapeHtml(stage.label)} <span id="editStageChevron">⌄</span>`;
       }
@@ -1768,8 +1745,8 @@
   };
   $('editDeleteBtn').onclick = () => {
     if (editingClipId === 'new') return;
-    askConfirm(t('confirmDeleteClip'), async () => {
-      await deleteClip(editingClipId);
+    askConfirm(t('confirmDeleteClip'), () => {
+      deleteClip(editingClipId);
       $('editSheet').classList.remove('open');
     });
   };
@@ -1783,23 +1760,20 @@
     renderAll();
   };
   $('fillSheet').addEventListener('click', (e) => { if (e.target.id === 'fillSheet') $('fillSheet').classList.remove('open'); });
-  async function savePreviewFields() {
+  function savePreviewFields() {
     if (!previewClip) return;
     const newTitle = $('attachPreviewTitleInput').value.trim();
     const newText = $('attachPreviewTextInput').value.trim();
     if (newTitle === (previewClip.title || '') && newText === (previewClip.text || '')) return; // ничего не поменялось
+    const c = clips.find((x) => x.id === previewClip.id);
+    if (c) { c.title = newTitle; c.text = newText; c.updatedAt = new Date().toISOString(); }
     previewClip.title = newTitle;
     previewClip.text = newText;
-    try {
-      await updateDoc(doc(db, 'users', currentUser.uid, 'clips', previewClip.id), {
-        title: newTitle, text: newText, updatedAt: new Date().toISOString(),
-      });
-    } catch (err) {
-      console.error('Ошибка сохранения названия/описания:', err);
-    }
+    persist();
+    renderAll();
   }
   $('attachPreviewShareBtn').onclick = () => {
-    savePreviewFields(); // сохраняем в фоне, не блокируя жест "поделиться"
+    savePreviewFields();
     const clip = previewClip;
     if (!clip) return;
     const cached = previewFileCache && previewFileCache.clipId === clip.id ? previewFileCache.file : null;

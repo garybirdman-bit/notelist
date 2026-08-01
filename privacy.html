@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — Sendlist</title>
+<style>
+  :root {
+    --bg: #F4E8D0; --text: #2E2A22; --text-dim: #8A8069; --accent: #4E6B45; --warn: #B5654B; --line: #E0D6C3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55; padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  a { color: var(--accent); }
+  .brand {
+    font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 700;
+    font-size: 28px; color: var(--accent); margin-bottom: 4px;
+  }
+  .updated { font-size: 13px; color: var(--text-dim); margin-bottom: 36px; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  h2 {
+    font-family: Georgia, "Times New Roman", serif; font-size: 17px; font-weight: 700;
+    margin: 36px 0 10px; padding-top: 4px;
+  }
+  p, li { font-size: 14.5px; color: var(--text); }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin-bottom: 6px; }
+  .note {
+    background: rgba(181,101,75,0.12); border: 1px solid var(--warn); border-radius: 10px;
+    padding: 14px 16px; font-size: 13.5px; color: var(--text); margin: 8px 0 28px;
+  }
+  .note b { color: var(--warn); }
+  .card {
+    background: rgba(78,107,69,0.08); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; margin: 10px 0;
+  }
+  .card b { display: block; margin-bottom: 3px; }
+  footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--text-dim); }
+  footer a { color: var(--text-dim); text-decoration: underline; }
+  .lang-switch { display: flex; gap: 10px; margin-bottom: 28px; }
+  .lang-switch button {
+    background: none; border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px;
+    font-size: 12.5px; color: var(--text-dim); cursor: pointer;
+  }
+  .lang-switch button.active { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .content { display: none; }
+  .content.active { display: block; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">Sendlist</div>
+    <div class="lang-switch">
+      <button data-lang="ru" id="btn-ru">Русский</button>
+      <button data-lang="en" id="btn-en">English</button>
+      <button data-lang="es" id="btn-es">Español</button>
+    </div>
+
+    <!-- ================= RUSSIAN ================= -->
+    <div class="content" id="content-ru">
+      <h1>Политика конфиденциальности</h1>
+      <div class="updated">Обновлено: август 2026</div>
+
+      <div class="note">
+        <b>Коротко:</b> Sendlist — небольшое личное приложение на стадии бета-тестирования, а не аудированный корпоративный продукт.
+        Оно подходит для повседневных шаблонов ответов, но пока не стоит хранить в нём чувствительные данные
+        реальных клиентов (медицинские, юридические дела и т.п.) — ниже честно объясняю почему.
+      </div>
+
+      <h2>Что хранится</h2>
+      <ul>
+        <li>Данные вашего Google-аккаунта, полученные при входе: имя, e-mail, аватар — только для идентификации, ничего сверх этого не запрашивается.</li>
+        <li>Содержимое ваших карточек: название, текст, тема, раздел.</li>
+        <li>Вложения, если вы их добавляете: фото, видео, PDF, DOC-файлы.</li>
+      </ul>
+
+      <h2>Где это находится</h2>
+      <p>
+        Всё хранится в Firebase (облачная инфраструктура Google Cloud) — тексты и настройки в Firestore,
+        файлы-вложения в Firebase Storage. Передача данных идёт по HTTPS, хранение — со стандартным
+        шифрованием Google Cloud «в состоянии покоя» (encryption at rest).
+      </p>
+
+      <h2>Кто имеет доступ</h2>
+      <div class="card">
+        <b>Внутри приложения</b>
+        Каждый пользователь видит только свои карточки. Данные логически изолированы по вашему Google-аккаунту —
+        никто другой не может открыть ваши карточки через приложение.
+      </div>
+      <div class="card">
+        <b>На уровне базы данных</b>
+        Владелец проекта (разработчик Sendlist) технически имеет административный доступ к базе через консоль
+        Google Firebase — так устроена платформа для любого небольшого приложения на этой стадии. Это не
+        сквозное (end-to-end) шифрование: теоретически данные читаемы на стороне владельца базы. Мы не
+        просматриваем чужие карточки в рамках обычной работы — но технической невозможности такого доступа нет,
+        и мы не хотим об этом умалчивать.
+      </div>
+
+      <h2>Что мы не делаем</h2>
+      <ul>
+        <li>Не продаём и не передаём ваши данные третьим лицам.</li>
+        <li>Не показываем рекламу и не используем данные для неё.</li>
+        <li>Не используем ваши карточки ни для чего, кроме отображения их вам в приложении.</li>
+      </ul>
+
+      <h2>Удаление данных</h2>
+      <p>
+        Отдельные карточки удаляются в любой момент прямо в приложении. Если хотите удалить аккаунт целиком
+        со всеми данными — напишите нам (контакт ниже), и мы удалим всё вручную.
+      </p>
+
+      <h2>Рекомендации для чувствительных данных</h2>
+      <p>
+        Если вы юрист, врач, консультант и работаете с чужими персональными или охраняемыми данными —
+        на данный момент используйте Sendlist для общих шаблонов и рабочих заметок, но воздержитесь от
+        внесения реальных данных клиентов (ФИО, диагнозы, детали дел) до появления сквозного шифрования и
+        формального аудита безопасности. Мы прямо говорим об этом ограничении, а не скрываем его.
+      </p>
+
+      <h2>Изменения политики</h2>
+      <p>
+        Приложение развивается, и этот текст может обновляться. Существенные изменения (например, появление
+        сквозного шифрования или смена инфраструктуры) будут отражены здесь с указанием даты обновления.
+      </p>
+
+      <footer>
+        Вопросы по данным и приватности — пишите напрямую разработчику Sendlist.<br />
+        <a href="./index.html">← Вернуться в приложение</a>
+      </footer>
+    </div>
+
+    <!-- ================= ENGLISH ================= -->
+    <div class="content" id="content-en">
+      <h1>Privacy Policy</h1>
+      <div class="updated">Updated: August 2026</div>
+
+      <div class="note">
+        <b>In short:</b> Sendlist is a small personal app currently in beta, not an audited corporate product.
+        It's fine for everyday reply templates, but you shouldn't yet store sensitive real client data in it
+        (medical, legal case details, etc.) — here's an honest explanation of why.
+      </div>
+
+      <h2>What we store</h2>
+      <ul>
+        <li>Your Google account data from sign-in: name, e-mail, avatar — used only for identification, nothing beyond that is requested.</li>
+        <li>The content of your cards: title, text, theme, section.</li>
+        <li>Attachments, if you add them: photos, videos, PDF, DOC files.</li>
+      </ul>
+
+      <h2>Where it's stored</h2>
+      <p>
+        Everything is stored in Firebase (Google Cloud infrastructure) — text and settings in Firestore,
+        attached files in Firebase Storage. Data transfer happens over HTTPS, storage uses Google Cloud's
+        standard encryption at rest.
+      </p>
+
+      <h2>Who has access</h2>
+      <div class="card">
+        <b>Inside the app</b>
+        Each user only sees their own cards. Data is logically isolated by your Google account —
+        no one else can open your cards through the app.
+      </div>
+      <div class="card">
+        <b>At the database level</b>
+        The project owner (Sendlist's developer) technically has administrative access to the database via the
+        Google Firebase console — that's how the platform works for any small app at this stage. This is not
+        end-to-end encryption: in theory, data is readable on the database owner's side. We don't look at other
+        people's cards as part of normal operation — but there's no technical impossibility of that access, and
+        we don't want to hide that.
+      </div>
+
+      <h2>What we don't do</h2>
+      <ul>
+        <li>We don't sell or share your data with third parties.</li>
+        <li>We don't show ads or use your data for advertising.</li>
+        <li>We don't use your cards for anything other than displaying them to you in the app.</li>
+      </ul>
+
+      <h2>Deleting data</h2>
+      <p>
+        Individual cards can be deleted anytime right in the app. If you want your whole account deleted along
+        with all data — contact us (below) and we'll remove everything manually.
+      </p>
+
+      <h2>Recommendations for sensitive data</h2>
+      <p>
+        If you're a lawyer, doctor, or consultant working with other people's personal or protected data —
+        for now, use Sendlist for general templates and working notes, but hold off on entering real client
+        data (names, diagnoses, case details) until end-to-end encryption and a formal security audit are in
+        place. We're stating this limitation directly rather than hiding it.
+      </p>
+
+      <h2>Policy changes</h2>
+      <p>
+        The app keeps evolving, and this text may be updated. Significant changes (such as adding end-to-end
+        encryption or switching infrastructure) will be reflected here with an updated date.
+      </p>
+
+      <footer>
+        Questions about data and privacy — contact Sendlist's developer directly.<br />
+        <a href="./index.html">← Back to the app</a>
+      </footer>
+    </div>
+
+    <!-- ================= ESPAÑOL ================= -->
+    <div class="content" id="content-es">
+      <h1>Política de privacidad</h1>
+      <div class="updated">Actualizado: agosto de 2026</div>
+
+      <div class="note">
+        <b>Resumen:</b> Sendlist es una pequeña aplicación personal, actualmente en fase beta, no un producto
+        corporativo auditado. Es adecuada para plantillas de respuesta del día a día, pero por ahora no deberías
+        guardar en ella datos sensibles de clientes reales (médicos, casos legales, etc.) — te explico honestamente por qué.
+      </div>
+
+      <h2>Qué almacenamos</h2>
+      <ul>
+        <li>Los datos de tu cuenta de Google al iniciar sesión: nombre, e-mail, avatar — solo para identificación, no se pide nada más.</li>
+        <li>El contenido de tus tarjetas: título, texto, tema, sección.</li>
+        <li>Archivos adjuntos, si los añades: fotos, vídeos, PDF, documentos DOC.</li>
+      </ul>
+
+      <h2>Dónde se guarda</h2>
+      <p>
+        Todo se almacena en Firebase (infraestructura de Google Cloud) — textos y ajustes en Firestore,
+        archivos adjuntos en Firebase Storage. La transferencia de datos se hace por HTTPS, y el almacenamiento
+        usa el cifrado estándar de Google Cloud en reposo (encryption at rest).
+      </p>
+
+      <h2>Quién tiene acceso</h2>
+      <div class="card">
+        <b>Dentro de la aplicación</b>
+        Cada usuario ve solo sus propias tarjetas. Los datos están aislados lógicamente según tu cuenta de
+        Google — nadie más puede abrir tus tarjetas a través de la app.
+      </div>
+      <div class="card">
+        <b>A nivel de base de datos</b>
+        El propietario del proyecto (el desarrollador de Sendlist) tiene técnicamente acceso administrativo a
+        la base de datos a través de la consola de Google Firebase — así funciona la plataforma para cualquier
+        app pequeña en esta etapa. Esto no es cifrado de extremo a extremo (end-to-end): en teoría, los datos
+        son legibles por parte del propietario de la base de datos. No revisamos las tarjetas de otras personas
+        como parte del funcionamiento normal — pero no existe una imposibilidad técnica de ese acceso, y no
+        queremos ocultarlo.
+      </div>
+
+      <h2>Qué no hacemos</h2>
+      <ul>
+        <li>No vendemos ni compartimos tus datos con terceros.</li>
+        <li>No mostramos publicidad ni usamos tus datos para ello.</li>
+        <li>No usamos tus tarjetas para nada que no sea mostrártelas a ti en la app.</li>
+      </ul>
+
+      <h2>Eliminación de datos</h2>
+      <p>
+        Las tarjetas individuales se pueden eliminar en cualquier momento desde la app. Si quieres eliminar tu
+        cuenta por completo junto con todos los datos — contáctanos (más abajo) y lo eliminaremos todo manualmente.
+      </p>
+
+      <h2>Recomendaciones para datos sensibles</h2>
+      <p>
+        Si eres abogado, médico o consultor y trabajas con datos personales o protegidos de otras personas —
+        por ahora usa Sendlist para plantillas generales y notas de trabajo, pero evita introducir datos reales
+        de clientes (nombres, diagnósticos, detalles de casos) hasta que exista cifrado de extremo a extremo y
+        una auditoría de seguridad formal. Decimos esta limitación directamente, sin ocultarla.
+      </p>
+
+      <h2>Cambios en la política</h2>
+      <p>
+        La app sigue evolucionando, y este texto puede actualizarse. Los cambios importantes (como añadir
+        cifrado de extremo a extremo o cambiar de infraestructura) se reflejarán aquí con la fecha de actualización.
+      </p>
+
+      <footer>
+        Preguntas sobre datos y privacidad — contacta directamente con el desarrollador de Sendlist.<br />
+        <a href="./index.html">← Volver a la app</a>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    function setLang(lang) {
+      document.querySelectorAll('.content').forEach((el) => el.classList.remove('active'));
+      document.querySelectorAll('.lang-switch button').forEach((el) => el.classList.remove('active'));
+      var content = document.getElementById('content-' + lang);
+      var btn = document.getElementById('btn-' + lang);
+      if (content && btn) {
+        content.classList.add('active');
+        btn.classList.add('active');
+        document.documentElement.lang = lang;
+        try { localStorage.setItem('lang', lang); } catch (e) {}
+      }
+    }
+    document.querySelectorAll('.lang-switch button').forEach((btn) => {
+      btn.addEventListener('click', () => setLang(btn.dataset.lang));
+    });
+    // Подхватываем язык, уже выбранный в самом приложении Sendlist (тот же localStorage, тот же origin)
+    var savedLang = 'ru';
+    try { savedLang = localStorage.getItem('lang') || 'ru'; } catch (e) {}
+    if (['ru', 'en', 'es'].indexOf(savedLang) === -1) savedLang = 'ru';
+    setLang(savedLang);
+  </script>
+</body>
+</html>
