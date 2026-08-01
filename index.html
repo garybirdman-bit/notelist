@@ -91,7 +91,7 @@
 
   .sheet-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; z-index: 50; }
   .sheet-overlay.open { display: flex; }
-  .sheet { background: var(--bg-elevated); width: 100%; border-radius: 16px 16px 0 0; padding: 18px; border-top: 1px solid var(--line); max-height: 70vh; display: flex; flex-direction: column; }
+  .sheet { background: var(--bg-elevated); width: 100%; border-radius: 16px 16px 0 0; padding: 18px; border-top: 1px solid var(--line); max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .sheet-title { font-size: 18px; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; color: var(--text); margin-bottom: 12px; }
   .sheet textarea, .sheet input[type=text] { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; padding: 10px 12px; outline: none; resize: none; margin-bottom: 10px; font-family: inherit; }
   .sheet-btn { width: 100%; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; padding: 12px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -212,6 +212,7 @@
       <span id="filePreviewName" style="flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
       <button id="removeFileBtn" type="button" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;">✕</button>
     </div>
+    <div id="filePreviewMedia" style="display:none; margin:0 2px 10px; border-radius:12px; overflow:hidden; background:#000; max-height:220px;"></div>
     <div id="uploadProgressRow" style="display:none; align-items:center; gap:8px; padding:2px 2px 12px;">
       <div style="flex:1; height:4px; background:var(--line); border-radius:2px; overflow:hidden;">
         <div id="uploadProgressBar" style="height:100%; width:0%; background:var(--accent); border-radius:2px; transition:width 0.2s ease;"></div>
@@ -800,7 +801,32 @@
     await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { copyCount: (c?.copyCount || 0) + 1 });
   }
 
+  async function shareAttachment(clip) {
+    const att = clip.attachment;
+    try {
+      const resp = await fetch(att.url);
+      if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
+      const blob = await resp.blob();
+      const file = new File([blob], att.name || 'file', { type: att.type || blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: clip.text || undefined, title: clip.title || undefined });
+        await registerCopy(clip.id);
+        return;
+      }
+    } catch (err) {
+      if (err?.name === 'AbortError') return; // пользователь сам закрыл системное окно "поделиться"
+      console.error('Ошибка шаринга вложения:', err);
+    }
+    // Фолбэк, если Web Share недоступен или не сработал — открываем файл в новой вкладке
+    window.open(att.url, '_blank');
+    await registerCopy(clip.id);
+  }
+
   async function handleCardClick(clip) {
+    if (clip.attachment) {
+      await shareAttachment(clip);
+      return;
+    }
     const ph = extractPlaceholders(clip.text);
     if (ph.length > 0) {
       fillModalClip = clip;
@@ -864,7 +890,22 @@
     }
     return `<svg ${LUCIDE_SVG_ATTRS}><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg>`;
   }
+  let previewObjectUrl = null; // для отзыва blob-URL превью, чтобы не текла память
+  function renderPreviewMedia(type, url) {
+    const box = $('filePreviewMedia');
+    if (type?.startsWith('image/')) {
+      box.innerHTML = `<img src="${url}" style="width:100%; max-height:220px; object-fit:contain; display:block;">`;
+      box.style.display = 'block';
+    } else if (type?.startsWith('video/')) {
+      box.innerHTML = `<video src="${url}" controls playsinline style="width:100%; max-height:220px; display:block;"></video>`;
+      box.style.display = 'block';
+    } else {
+      box.innerHTML = '';
+      box.style.display = 'none';
+    }
+  }
   function refreshAttachPreview() {
+    if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
     const pending = editPendingFile;
     const existing = !editAttachmentRemoved ? editDraftAttachment : null;
     if (pending) {
@@ -872,14 +913,19 @@
       $('filePreviewThumb').innerHTML = fileIconSvg(pending.type);
       $('filePreviewName').textContent = pending.name;
       $('attachFileLabel').textContent = t('attachFileReplace');
+      previewObjectUrl = URL.createObjectURL(pending);
+      renderPreviewMedia(pending.type, previewObjectUrl);
     } else if (existing) {
       $('filePreviewRow').style.display = 'flex';
       $('filePreviewThumb').innerHTML = fileIconSvg(existing.type);
       $('filePreviewName').textContent = existing.name;
       $('attachFileLabel').textContent = t('attachFileReplace');
+      renderPreviewMedia(existing.type, existing.url);
     } else {
       $('filePreviewRow').style.display = 'none';
       $('attachFileLabel').textContent = t('attachFilePrompt');
+      $('filePreviewMedia').style.display = 'none';
+      $('filePreviewMedia').innerHTML = '';
     }
   }
   $('attachFileBtn').onclick = () => $('fileInput').click();
@@ -969,6 +1015,7 @@
     $('attachFileBtn').style.opacity = '0.5';
     $('removeFileBtn').style.pointerEvents = 'none';
     $('removeFileBtn').style.opacity = '0.5';
+    $('editSheetSave').scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
   function hideUploadProgress() {
     $('uploadProgressRow').style.display = 'none';
@@ -992,7 +1039,8 @@
   async function saveEditSheet() {
     const text = $('editSheetInput').value.trim();
     const title = $('editTitleInput').value.trim();
-    if (!text) {
+    const hasAttachment = !!editPendingFile || (!!editDraftAttachment && !editAttachmentRemoved);
+    if (!text && !hasAttachment) {
       $('attachErrorBanner').textContent = t('textRequired');
       $('attachErrorBanner').style.display = 'block';
       $('editSheetInput').focus();
