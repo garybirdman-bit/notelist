@@ -553,7 +553,7 @@
       settingsTitle: "Настройки", viewToggleTitle: "Вид: сетка/список", allThemes: "Все темы",
       searchPlaceholder: "Поиск…", editTitle: "Редактировать", pinAction: "Закрепить", unpinAction: "Открепить",
       duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)",
-      textPlaceholder: "Текст ответа… можно с {переменными}", themeFieldLabel: "Тема", sectionFieldLabel: "Раздел",
+      textPlaceholder: "Текст ответа… можно с {переменными}", themeFieldLabel: "Тема", sectionFieldLabel: "Раздел", textRequired: "Введите текст ответа — без него карточку сохранить нельзя",
       save: "Сохранить", deleteAction: "Удалить", fillTitle: "Заполни перед копированием", copyAction: "Скопировать",
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
       templatesLabel: "Шаблоны", attachFilePrompt: "Прикрепить файл / фото / видео", attachFileReplace: "Заменить файл / фото / видео",
@@ -584,7 +584,7 @@
       settingsTitle: "Settings", viewToggleTitle: "View: grid/list", allThemes: "All themes",
       searchPlaceholder: "Search…", editTitle: "Edit", pinAction: "Pin", unpinAction: "Unpin",
       duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)",
-      textPlaceholder: "Reply text… you can use {variables}", themeFieldLabel: "Theme", sectionFieldLabel: "Section",
+      textPlaceholder: "Reply text… you can use {variables}", themeFieldLabel: "Theme", sectionFieldLabel: "Section", textRequired: "Enter the reply text — a card can't be saved without it",
       save: "Save", deleteAction: "Delete", fillTitle: "Fill in before copying", copyAction: "Copy",
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
       templatesLabel: "Templates", attachFilePrompt: "Attach file / photo / video", attachFileReplace: "Replace file / photo / video",
@@ -615,7 +615,7 @@
       settingsTitle: "Ajustes", viewToggleTitle: "Vista: cuadrícula/lista", allThemes: "Todos los temas",
       searchPlaceholder: "Buscar…", editTitle: "Editar", pinAction: "Fijar", unpinAction: "Quitar fijado",
       duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)",
-      textPlaceholder: "Texto de la respuesta… puedes usar {variables}", themeFieldLabel: "Tema", sectionFieldLabel: "Sección",
+      textPlaceholder: "Texto de la respuesta… puedes usar {variables}", themeFieldLabel: "Tema", sectionFieldLabel: "Sección", textRequired: "Escribe el texto de la respuesta — sin él no se puede guardar la tarjeta",
       save: "Guardar", deleteAction: "Eliminar", fillTitle: "Completa antes de copiar", copyAction: "Copiar",
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
       templatesLabel: "Plantillas", attachFilePrompt: "Adjuntar archivo / foto / vídeo", attachFileReplace: "Reemplazar archivo / foto / vídeo",
@@ -992,7 +992,12 @@
   async function saveEditSheet() {
     const text = $('editSheetInput').value.trim();
     const title = $('editTitleInput').value.trim();
-    if (!text) { $('editSheet').classList.remove('open'); return; }
+    if (!text) {
+      $('attachErrorBanner').textContent = t('textRequired');
+      $('attachErrorBanner').style.display = 'block';
+      $('editSheetInput').focus();
+      return;
+    }
     $('editSheetSave').disabled = true;
     $('attachErrorBanner').style.display = 'none';
     let clipId = editingClipId;
