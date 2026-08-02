@@ -7,13 +7,28 @@
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <title>Sendlist</title>
+<script>
+  (function () {
+    try {
+      var theme = localStorage.getItem('theme') || 'light';
+      if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
     --bg: #F4E8D0; --bg-elevated: #F4E8D0; --line: #E0D6C3;
     --text: #2E2A22; --text-dim: #8A8069; --accent: #4E6B45; --warn: #B5654B;
     --card: #4E6B45;
   }
+  html[data-theme="dark"] {
+    --bg: #211C16; --bg-elevated: #2B251D; --line: #3E362A;
+    --text: #F3E9D2; --text-dim: #A99A7C; --accent: #5E8153; --warn: #C97862;
+    --card: #5E8153;
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  @keyframes sendlistSpin { to { transform: rotate(360deg); } }
+  .spin-icon { animation: sendlistSpin 0.8s linear infinite; transform-origin: center; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: Roboto, -apple-system, "Segoe UI", sans-serif; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
   #loginScreen { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
@@ -53,13 +68,13 @@
   .pill-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; flex-shrink: 0; }
   .pill-circle { width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent; box-sizing: content-box; }
   .pill-circle.active { border-color: #fff; }
-  .pill-label { font-size: 10px; color: var(--text-dim); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill-label { font-size: 11px; color: var(--text-dim); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   #stagesRow { display: none; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 0 16px 8px; overflow-x: auto; overflow-y: hidden; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
   #stagesRow::-webkit-scrollbar { display: none; }
   #stagesRow.visible { display: flex; }
   #stagesRow.expanded { flex-wrap: wrap; }
-  .stage-pill { font-size: 11px; font-weight: 600; padding: 6px 13px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; cursor: pointer; background: var(--bg-elevated); border: 1.5px solid var(--line); color: var(--text-dim); box-shadow: 1px 2px 4px rgba(46,42,34,0.08); transition: background 0.15s ease, color 0.15s ease; }
+  .stage-pill { font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; cursor: pointer; background: var(--bg-elevated); border: 1.5px solid var(--line); color: var(--text-dim); box-shadow: 1px 2px 4px rgba(46,42,34,0.08); transition: background 0.15s ease, color 0.15s ease; }
   .stage-pill.active { color: #fff; border-color: transparent; box-shadow: 1px 2px 5px rgba(46,42,34,0.18); }
   .stage-add { font-size: 11px; font-weight: 600; padding: 6px 13px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; cursor: pointer; background: transparent; border: 1.5px dashed var(--text-dim); color: var(--text-dim); opacity: 0.85; }
   .stage-plus { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; cursor: pointer; background: transparent; border: 1.5px dashed var(--text-dim); color: var(--text-dim); opacity: 0.85; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; }
@@ -80,21 +95,22 @@
   .clip-card.drag-ghost { opacity: 0.25; }
   .clip-card.drag-chosen { box-shadow: 4px 10px 22px rgba(46,42,34,0.4); transform: scale(1.04) rotate(-1.5deg); }
   .clip-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .clip-tagname { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: none; }
+  .clip-tagname { font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: none; }
   .clip-right { display: flex; align-items: center; gap: 6px; }
   .clip-pin { display: flex; align-items: center; color: rgba(255,255,255,0.85); }
   .clip-attach { display: flex; align-items: center; color: rgba(255,255,255,0.85); }
   .clip-stale-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
   .clip-menu-btn { background: none; border: none; color: rgba(255,255,255,0.85); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
-  .clip-text { font-size: 12.5px; font-weight: 600; line-height: 1.35; color: #fff; flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: none; }
+  .clip-text { font-size: 13px; font-weight: 600; line-height: 1.4; color: #fff; flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: none; }
   .clip-text::-webkit-scrollbar { display: none; }
 
   .sheet-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; z-index: 50; }
   .sheet-overlay.open { display: flex; }
   .sheet { background: var(--bg-elevated); width: 100%; border-radius: 16px 16px 0 0; padding: 18px; border-top: 1px solid var(--line); max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .sheet-title { font-size: 18px; font-weight: 700; font-style: italic; font-family: Georgia, "Times New Roman", serif; color: var(--text); margin-bottom: 12px; }
-  .sheet textarea, .sheet input[type=text] { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; padding: 10px 12px; outline: none; resize: none; margin-bottom: 10px; font-family: inherit; }
+  .sheet textarea, .sheet input[type=text] { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 14.5px; padding: 10px 12px; outline: none; resize: none; margin-bottom: 10px; font-family: inherit; }
   .sheet-btn { width: 100%; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; padding: 12px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .sheet-btn:disabled { opacity: 0.5; cursor: default; }
   .stage-list-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 4px; border-bottom: 1px solid var(--line); }
   .stage-list-del { background: none; border: none; color: #e08585; cursor: pointer; padding: 4px; }
   .fill-preview { font-size: 11px; color: var(--text-dim); margin-top: 4px; margin-bottom: 14px; line-height: 1.4; background: var(--bg); border-radius: 8px; padding: 8px 10px; }
@@ -104,6 +120,7 @@
   .edit-action-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; display: flex; align-items: center; gap: 4px; font-size: 11px; }
   .edit-action-btn.active { color: var(--accent); }
   .field-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px; border-bottom: 1px solid var(--line); cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; }
+  .field-row:disabled { opacity: 0.5; cursor: default; }
   .pack-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 4px; background: none; border: none; border-bottom: 1px solid var(--line); cursor: pointer; text-align: left; }
   .pack-option:last-child { border-bottom: none; }
   .pack-icon { font-size: 26px; flex-shrink: 0; width: 34px; text-align: center; }
@@ -215,9 +232,11 @@
     <div id="filePreviewMedia" style="display:none; margin:0 2px 10px; border-radius:12px; overflow:hidden; background:#000; max-height:220px;"></div>
     <button id="editShareBtn" type="button" class="field-row" style="display:none;">
       <span class="field-row-label" style="display:flex; align-items:center; gap:8px;">
+        <span id="editShareIcon" style="display:flex;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line>
         </svg>
+        </span>
         <span id="editShareLabel">Поделиться</span>
       </span>
       <span class="field-row-value"><span>›</span></span>
@@ -255,9 +274,11 @@
     <div id="attachPreviewMedia" style="border-radius:12px; overflow:hidden; background:#000; margin-bottom:14px; max-height:50vh; display:flex; align-items:center; justify-content:center; min-height:80px;"></div>
     <textarea id="attachPreviewTextInput" rows="2" placeholder="Описание (необязательно)… можно с {переменными}"></textarea>
     <button class="sheet-btn" id="attachPreviewShareBtn">
+      <span id="attachPreviewShareIcon" style="display:flex;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line>
       </svg>
+      </span>
       <span id="attachPreviewShareLabel">Поделиться</span>
     </button>
   </div></div>
@@ -304,6 +325,11 @@
       <span class="field-row-value" id="languageValue">Русский <span>›</span></span>
     </button>
     <div class="palette-grid" id="languagePickGrid" style="display:none; grid-template-columns: repeat(3, 1fr);"></div>
+    <button class="field-row" id="themeRow">
+      <span class="field-row-label" id="themeFieldLabelSettings">Тема оформления</span>
+      <span class="field-row-value" id="themeValue">Светлая <span>›</span></span>
+    </button>
+    <div class="palette-grid" id="themePickGrid" style="display:none; grid-template-columns: repeat(2, 1fr);"></div>
     <button class="field-row" id="templatesRow">
       <span class="field-row-label" id="templatesFieldLabel">Шаблоны</span>
       <span class="field-row-value"><span>›</span></span>
@@ -575,13 +601,13 @@
     ru: {
       settingsTitle: "Настройки", viewToggleTitle: "Вид: сетка/список", allThemes: "Все темы",
       searchPlaceholder: "Поиск…", editTitle: "Редактировать", pinAction: "Закрепить", unpinAction: "Открепить",
-      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)",
+      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)", descPlaceholder: "Описание (необязательно)… можно с {переменными}", signInGoogle: "Войти через Google", loginError: "Ошибка входа: ", themeSettingsLabel: "Тема оформления", themeLight: "Светлая", themeDark: "Тёмная",
       textPlaceholder: "Текст ответа… можно с {переменными}", themeFieldLabel: "Тема", sectionFieldLabel: "Раздел", textRequired: "Введите текст ответа — без него карточку сохранить нельзя",
       save: "Сохранить", deleteAction: "Удалить", fillTitle: "Заполни перед копированием", copyAction: "Скопировать",
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
       templatesLabel: "Шаблоны", attachFilePrompt: "Прикрепить файл / фото / видео", attachFileReplace: "Заменить файл / фото / видео",
       attachHint: "Фото, видео, PDF, DOC — до 50 МБ на файл", attachTooBig: "Файл больше {n}МБ — выбери файл поменьше",
-      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение", privacyPolicyLabel: "Политика конфиденциальности", attachPreparing: "Готовим файл…",
+      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение", privacyPolicyLabel: "Политика конфиденциальности", attachPreparing: "Готовим файл…", templateLangUpdated: "Шаблон обновлён на выбранный язык",
       themeNamePlaceholder: "Название темы…", create: "Создать", renameTitle: "Переименовать",
       renameThemeTitle: "Переименовать тему", renameStageTitle: "Переименовать раздел", namePlaceholder: "Название…",
       confirmTitle: "Удалить?", confirmOk: "Удалить", confirmCancel: "Отмена",
@@ -606,13 +632,13 @@
     en: {
       settingsTitle: "Settings", viewToggleTitle: "View: grid/list", allThemes: "All themes",
       searchPlaceholder: "Search…", editTitle: "Edit", pinAction: "Pin", unpinAction: "Unpin",
-      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)",
+      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)", descPlaceholder: "Description (optional)… you can use {variables}", signInGoogle: "Sign in with Google", loginError: "Sign-in error: ", themeSettingsLabel: "Appearance", themeLight: "Light", themeDark: "Dark",
       textPlaceholder: "Reply text… you can use {variables}", themeFieldLabel: "Theme", sectionFieldLabel: "Section", textRequired: "Enter the reply text — a card can't be saved without it",
       save: "Save", deleteAction: "Delete", fillTitle: "Fill in before copying", copyAction: "Copy",
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
       templatesLabel: "Templates", attachFilePrompt: "Attach file / photo / video", attachFileReplace: "Replace file / photo / video",
       attachHint: "Photo, video, PDF, DOC — up to 50MB per file", attachTooBig: "File is larger than {n}MB — choose a smaller one",
-      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment", privacyPolicyLabel: "Privacy Policy", attachPreparing: "Preparing…",
+      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment", privacyPolicyLabel: "Privacy Policy", attachPreparing: "Preparing…", templateLangUpdated: "Template updated to the selected language",
       themeNamePlaceholder: "Theme name…", create: "Create", renameTitle: "Rename",
       renameThemeTitle: "Rename theme", renameStageTitle: "Rename section", namePlaceholder: "Name…",
       confirmTitle: "Delete?", confirmOk: "Delete", confirmCancel: "Cancel",
@@ -637,13 +663,13 @@
     es: {
       settingsTitle: "Ajustes", viewToggleTitle: "Vista: cuadrícula/lista", allThemes: "Todos los temas",
       searchPlaceholder: "Buscar…", editTitle: "Editar", pinAction: "Fijar", unpinAction: "Quitar fijado",
-      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)",
+      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)", descPlaceholder: "Descripción (opcional)… puedes usar {variables}", signInGoogle: "Iniciar sesión con Google", loginError: "Error al iniciar sesión: ", themeSettingsLabel: "Apariencia", themeLight: "Claro", themeDark: "Oscuro",
       textPlaceholder: "Texto de la respuesta… puedes usar {variables}", themeFieldLabel: "Tema", sectionFieldLabel: "Sección", textRequired: "Escribe el texto de la respuesta — sin él no se puede guardar la tarjeta",
       save: "Guardar", deleteAction: "Eliminar", fillTitle: "Completa antes de copiar", copyAction: "Copiar",
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
       templatesLabel: "Plantillas", attachFilePrompt: "Adjuntar archivo / foto / vídeo", attachFileReplace: "Reemplazar archivo / foto / vídeo",
       attachHint: "Foto, vídeo, PDF, DOC — hasta 50 MB por archivo", attachTooBig: "El archivo supera los {n}MB — elige uno más pequeño",
-      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", privacyPolicyLabel: "Política de privacidad", attachPreparing: "Preparando…",
+      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", privacyPolicyLabel: "Política de privacidad", attachPreparing: "Preparando…", templateLangUpdated: "Plantilla actualizada al idioma seleccionado",
       themeNamePlaceholder: "Nombre del tema…", create: "Crear", renameTitle: "Renombrar",
       renameThemeTitle: "Renombrar tema", renameStageTitle: "Renombrar sección", namePlaceholder: "Nombre…",
       confirmTitle: "¿Eliminar?", confirmOk: "Eliminar", confirmCancel: "Cancelar",
@@ -667,6 +693,7 @@
     },
   };
   let currentLang = localStorage.getItem('lang') || 'ru';
+  let lastAppliedPack = localStorage.getItem('lastPack') || null;
   function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) ?? I18N.ru[key] ?? key; }
 
   let categories = [];
@@ -697,11 +724,11 @@
         try {
           await signInWithRedirect(auth, new GoogleAuthProvider());
         } catch (e2) {
-          $('loginError').textContent = 'Ошибка входа: ' + e2.message;
+          $('loginError').textContent = t('loginError') + e2.message;
           $('loginError').style.display = 'block';
         }
       } else {
-        $('loginError').textContent = 'Ошибка входа: ' + e.message;
+        $('loginError').textContent = t('loginError') + e.message;
         $('loginError').style.display = 'block';
       }
     }
@@ -709,7 +736,7 @@
   $('signOutRow').onclick = () => signOut(auth);
   getRedirectResult(auth).catch((e) => {
     console.error('Ошибка входа (redirect):', e.code, e.message);
-    $('loginError').textContent = 'Ошибка входа: ' + e.message;
+    $('loginError').textContent = t('loginError') + e.message;
     $('loginError').style.display = 'block';
   });
 
@@ -718,11 +745,12 @@
     return !snap.empty;
   }
 
-  async function applyPack(packId) {
-    const pack = packId === 'teacher' ? buildTeacherPack(currentLang)
-      : packId === 'realtor' ? buildRealtorPack(currentLang)
-      : packId === 'funnel' ? buildFunnelPack(currentLang)
-      : buildDefaultPack(currentLang);
+  async function applyPack(packId, lang, silent) {
+    const useLang = lang || currentLang;
+    const pack = packId === 'teacher' ? buildTeacherPack(useLang)
+      : packId === 'realtor' ? buildRealtorPack(useLang)
+      : packId === 'funnel' ? buildFunnelPack(useLang)
+      : buildDefaultPack(useLang);
     for (const cat of pack.categories) {
       await setDoc(doc(db, 'users', currentUser.uid, 'categories', cat.id), cat);
     }
@@ -730,7 +758,9 @@
       const { id, ...rest } = clip;
       await setDoc(doc(db, 'users', currentUser.uid, 'clips', id), rest);
     }
-    $('onboardingSheet').classList.remove('open');
+    lastAppliedPack = packId;
+    localStorage.setItem('lastPack', packId);
+    if (!silent) $('onboardingSheet').classList.remove('open');
   }
 
   function subscribe(uid) {
@@ -823,12 +853,20 @@
     await updateDoc(doc(db, 'users', currentUser.uid, 'clips', clipId), { copyCount: (c?.copyCount || 0) + 1 });
   }
 
-  async function shareClipNow(clip, cachedFile, btnEl, labelEl) {
+  const SHARE_ICON_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>';
+  const SPINNER_ICON_SVG = '<svg class="spin-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2a10 10 0 0 1 10 10"></path></svg>';
+  function setShareIconLoading(iconElId, loading) {
+    const el = $(iconElId);
+    if (el) el.innerHTML = loading ? SPINNER_ICON_SVG : SHARE_ICON_SVG;
+  }
+
+  async function shareClipNow(clip, cachedFile, btnEl, labelEl, iconElId) {
     let file = cachedFile;
     if (!file) {
       const originalLabel = labelEl ? labelEl.textContent : null;
       if (btnEl) btnEl.disabled = true;
       if (labelEl) labelEl.textContent = t('attachPreparing');
+      if (iconElId) setShareIconLoading(iconElId, true);
       try {
         const resp = await fetch(clip.attachment.url);
         if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
@@ -839,6 +877,7 @@
       }
       if (btnEl) btnEl.disabled = false;
       if (labelEl) labelEl.textContent = originalLabel;
+      if (iconElId) setShareIconLoading(iconElId, false);
     }
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
@@ -859,6 +898,9 @@
   let previewSheetObjectUrl = null;
   let previewFileCache = null; // { clipId, file } — готовый File, чтобы share() вызывался мгновенно, без ожидания сети
   async function prefetchPreviewFile(clip) {
+    $('attachPreviewShareBtn').disabled = true;
+    $('attachPreviewShareLabel').textContent = t('attachPreparing');
+    setShareIconLoading('attachPreviewShareIcon', true);
     try {
       const att = clip.attachment;
       const resp = await fetch(att.url);
@@ -866,8 +908,14 @@
       const blob = await resp.blob();
       if (previewClip !== clip) return; // пока грузили — уже переключились на другую карточку
       previewFileCache = { clipId: clip.id, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
+      $('attachPreviewShareBtn').disabled = false;
+      $('attachPreviewShareLabel').textContent = t('shareLabel');
+      setShareIconLoading('attachPreviewShareIcon', false);
     } catch (err) {
       console.error('Не удалось подготовить файл для шаринга:', err);
+      $('attachPreviewShareBtn').disabled = false; // не блокируем навсегда — при клике попробуем фолбэк
+      $('attachPreviewShareLabel').textContent = t('shareLabel');
+      setShareIconLoading('attachPreviewShareIcon', false);
     }
   }
   async function openAttachPreview(clip) {
@@ -975,14 +1023,23 @@
   }
   let editAttachFileCache = null; // { url, file } — готовый File для мгновенного share() из карточки редактирования
   async function prefetchEditAttachFile(att) {
+    $('editShareBtn').disabled = true;
+    $('editShareLabel').textContent = t('attachPreparing');
+    setShareIconLoading('editShareIcon', true);
     try {
       const resp = await fetch(att.url);
       if (!resp.ok) throw new Error('fetch failed: ' + resp.status);
       const blob = await resp.blob();
       if (!editDraftAttachment || editDraftAttachment.url !== att.url || editAttachmentRemoved || editPendingFile) return;
       editAttachFileCache = { url: att.url, file: new File([blob], att.name || 'file', { type: att.type || blob.type }) };
+      $('editShareBtn').disabled = false;
+      $('editShareLabel').textContent = t('shareLabel');
+      setShareIconLoading('editShareIcon', false);
     } catch (err) {
       console.error('Не удалось подготовить файл для шаринга:', err);
+      $('editShareLabel').textContent = t('shareLabel');
+      $('editShareBtn').disabled = false; // не блокируем навсегда — при клике попробуем ещё раз через фолбэк
+      setShareIconLoading('editShareIcon', false);
     }
   }
   function refreshAttachPreview() {
@@ -998,6 +1055,9 @@
       previewObjectUrl = URL.createObjectURL(pending);
       renderPreviewMedia(pending.type, previewObjectUrl);
       $('editShareBtn').style.display = 'flex';
+      $('editShareBtn').disabled = false;
+      $('editShareLabel').textContent = t('shareLabel');
+      setShareIconLoading('editShareIcon', false);
     } else if (existing) {
       $('filePreviewRow').style.display = 'flex';
       $('filePreviewThumb').innerHTML = fileIconSvg(existing.type);
@@ -1028,7 +1088,7 @@
       text, title,
       attachment: editPendingFile ? null : editDraftAttachment,
     };
-    shareClipNow(clipLike, file, $('editShareBtn'), $('editShareLabel'));
+    shareClipNow(clipLike, file, $('editShareBtn'), $('editShareLabel'), 'editShareIcon');
   }
   $('editShareBtn').onclick = shareCurrentEditAttachment;
   $('attachFileBtn').onclick = () => $('fileInput').click();
@@ -1381,6 +1441,7 @@
     $('editShareLabel').textContent = t('shareLabel');
     $('attachHintText').textContent = t('attachHint');
     $('languageFieldLabel').textContent = t('languageLabel');
+    $('themeFieldLabelSettings').textContent = t('themeSettingsLabel');
     $('languageValue').innerHTML = `${t('lang' + currentLang[0].toUpperCase() + currentLang.slice(1))} <span>›</span>`;
     $('newThemeTitle').textContent = t('newThemeTitle');
     $('categorySheetInput').placeholder = t('themeNamePlaceholder');
@@ -1402,6 +1463,9 @@
     $('packRealtorDesc').textContent = t('packRealtorDesc');
     $('stagesSheetInput').placeholder = t('newSectionPlaceholder');
     $('signOutLabel').textContent = t('signOut');
+    $('attachPreviewTitleInput').placeholder = t('titlePlaceholder');
+    $('attachPreviewTextInput').placeholder = t('descPlaceholder');
+    if ($('googleBtn')) $('googleBtn').textContent = t('signInGoogle');
   }
 
   // ==== РЕНДЕР ====
@@ -1803,7 +1867,7 @@
     const clip = previewClip;
     if (!clip) return;
     const cached = previewFileCache && previewFileCache.clipId === clip.id ? previewFileCache.file : null;
-    shareClipNow(clip, cached, $('attachPreviewShareBtn'), $('attachPreviewShareLabel'));
+    shareClipNow(clip, cached, $('attachPreviewShareBtn'), $('attachPreviewShareLabel'), 'attachPreviewShareIcon');
   };
   $('attachPreviewSheet').addEventListener('click', (e) => {
     if (e.target.id === 'attachPreviewSheet') {
@@ -1831,6 +1895,11 @@
     applyStaticTexts();
     renderLanguagePicker();
     renderAll();
+    if (lastAppliedPack) {
+      applyPack(lastAppliedPack, code, true).then(() => {
+        flashStatus(t('templateLangUpdated'), 2200);
+      });
+    }
   }
   $('settingsBtn').onclick = () => { applyStaticTexts(); $('settingsSheet').classList.add('open'); };
   $('settingsSheet').addEventListener('click', (e) => { if (e.target.id === 'settingsSheet') $('settingsSheet').classList.remove('open'); });
@@ -1848,6 +1917,40 @@
     setLanguage(el.dataset.lang);
     $('languagePickGrid').style.display = 'none';
   });
+
+  const THEMES = [
+    { code: 'light', key: 'themeLight', color: '#F4E8D0', textColor: '#2E2A22' },
+    { code: 'dark', key: 'themeDark', color: '#211C16', textColor: '#F3E9D2' },
+  ];
+  let currentTheme = localStorage.getItem('theme') || 'light';
+  function renderThemePicker() {
+    $('themePickGrid').innerHTML = THEMES.map((th) => `
+      <div class="palette-swatch ${th.code === currentTheme ? 'active' : ''}" style="background:${th.color}; display:flex; align-items:center; justify-content:center; aspect-ratio:auto; height:44px; border-radius:10px; font-size:11px; font-weight:700; color:${th.textColor}; border:1px solid var(--line);" data-theme-opt="${th.code}">${t(th.key)}</div>
+    `).join('');
+  }
+  function setTheme(code) {
+    currentTheme = code;
+    localStorage.setItem('theme', code);
+    document.documentElement.setAttribute('data-theme', code === 'dark' ? 'dark' : 'light');
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.content = code === 'dark' ? '#211C16' : '#F4E8D0';
+    $('themeValue').innerHTML = `${t(code === 'dark' ? 'themeDark' : 'themeLight')} <span>›</span>`;
+    renderThemePicker();
+  }
+  $('themeRow').onclick = () => {
+    const grid = $('themePickGrid');
+    const isOpen = grid.style.display !== 'none';
+    if (isOpen) { grid.style.display = 'none'; return; }
+    renderThemePicker();
+    grid.style.display = 'grid';
+  };
+  $('themePickGrid').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-theme-opt]');
+    if (!el) return;
+    setTheme(el.dataset.themeOpt);
+    $('themePickGrid').style.display = 'none';
+  });
+  setTheme(currentTheme); // применяем сохранённое значение и выставляем текст кнопки при загрузке
 
   $('categorySheetSave').onclick = () => addCategory($('categorySheetInput').value);
   $('categorySheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCategory(e.target.value); });
