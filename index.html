@@ -11,7 +11,7 @@
   (function () {
     try {
       var theme = localStorage.getItem('theme') || 'light';
-      if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      if (theme === 'dark' || theme === 'strict') document.documentElement.setAttribute('data-theme', theme);
     } catch (e) {}
   })();
 </script>
@@ -26,6 +26,21 @@
     --text: #F3E9D2; --text-dim: #A99A7C; --accent: #5E8153; --warn: #C97862;
     --card: #5E8153;
   }
+  html[data-theme="strict"] {
+    --bg: #16151C; --bg-elevated: #1E1D26; --line: #2E2C38;
+    --text: #F0EEF5; --text-dim: #9E9EAE; --accent: #760086; --warn: #E0607A;
+    --card: #760086;
+  }
+  /* Строгая тема — отдельный корпоративный шрифт вместо фирменного засечкового курсива */
+  html[data-theme="strict"] #splashScreen span,
+  html[data-theme="strict"] #themeLabel,
+  html[data-theme="strict"] .sheet-title,
+  html[data-theme="strict"] #loginBrandTitle {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif !important;
+    font-style: normal !important;
+    font-weight: 800 !important;
+  }
+  html[data-theme="strict"] #loginBrandTitle { color: var(--accent) !important; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   @keyframes sendlistSpin { to { transform: rotate(360deg); } }
   .spin-icon { animation: sendlistSpin 0.8s linear infinite; transform-origin: center; }
@@ -145,7 +160,7 @@
   <div id="splashScreen"><span>Sendlist</span></div>
 
   <div id="loginScreen" class="visible">
-    <h1 style="font-size:28px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;color:#4E6B45;margin:0;">Sendlist</h1>
+    <h1 id="loginBrandTitle" style="font-size:28px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;color:#4E6B45;margin:0;">Sendlist</h1>
     <p>Войди через Google — темы и карточки синхронизируются между телефоном и компьютером.</p>
     <button id="googleBtn">Войти через Google</button>
     <p id="loginError" style="color:#A6685C; font-size:12px; display:none;"></p>
@@ -329,7 +344,7 @@
       <span class="field-row-label" id="themeFieldLabelSettings">Тема оформления</span>
       <span class="field-row-value" id="themeValue">Светлая <span>›</span></span>
     </button>
-    <div class="palette-grid" id="themePickGrid" style="display:none; grid-template-columns: repeat(2, 1fr);"></div>
+    <div class="palette-grid" id="themePickGrid" style="display:none; grid-template-columns: repeat(3, 1fr);"></div>
     <button class="field-row" id="templatesRow">
       <span class="field-row-label" id="templatesFieldLabel">Шаблоны</span>
       <span class="field-row-value"><span>›</span></span>
@@ -413,7 +428,47 @@
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   const STALE_DAYS = 60;
-  const NEW_CATEGORY_COLORS = ["#5B7C99", "#9C7A4E", "#6B5B95", "#7A8B5E", "#A6685C", "#5E7A7A", "#1F6F63", "#C97361"];
+  const NEW_CATEGORY_COLORS_WARM = ["#5B7C99", "#9C7A4E", "#6B5B95", "#7A8B5E", "#A6685C", "#5E7A7A", "#1F6F63", "#C97361"];
+  const NEW_CATEGORY_COLORS_STRICT = ["#760086", "#4B0082", "#A20092", "#004225", "#800020", "#4A0AB8", "#5129E1", "#191970", "#490648", "#1E272C", "#8100A8", "#0000CC"];
+  function getNewCategoryColors() {
+    return currentTheme === 'strict' ? NEW_CATEGORY_COLORS_STRICT : NEW_CATEGORY_COLORS_WARM;
+  }
+  // Цвета готовых шаблонов-паков — при строгой теме заменяются на палитру из настоящих
+  // "именных" цветов (Purple, Indigo, Dark Magenta и т.д.) — насыщенные, узнаваемые, все хорошо
+  // читаются с белым текстом (проверено, контраст 7:1+ у каждого).
+  const WARM_TO_STRICT_MAP = {
+    '#4E6B45': '#760086', '#B5654B': '#4B0082', '#8A8069': '#A20092',
+    '#1F6F63': '#004225', '#7A8B5E': '#800020', '#A6685C': '#4A0AB8', '#5B7C99': '#5129E1',
+    '#9C7A4E': '#800020', '#6B5B95': '#760086', '#5E7A7A': '#004225', '#C97361': '#A20092',
+  };
+  const STRICT_TO_WARM_MAP = {
+    '#760086': '#4E6B45', '#4B0082': '#B5654B', '#A20092': '#8A8069',
+    '#004225': '#1F6F63', '#800020': '#7A8B5E', '#4A0AB8': '#A6685C', '#5129E1': '#5B7C99',
+    // 5 дополнительных цветов, добавленных для разнообразия палитры
+    '#191970': '#5B7C99', '#490648': '#6B5B95', '#1E272C': '#5E7A7A',
+    '#8100A8': '#9C7A4E', '#0000CC': '#5B7C99',
+    // "устаревшие" версии строгих цветов из прошлых итераций подбора палитры —
+    // чтобы уже перекрашенные ранее темы тоже находили дорогу обратно к тёплым
+    '#8B10C8': '#4E6B45', '#5031EE': '#B5654B', '#A40D8A': '#8A8069',
+    '#086647': '#1F6F63', '#77530A': '#7A8B5E', '#096273': '#A6685C', '#B10E44': '#5B7C99',
+    '#9948C1': '#4E6B45', '#5D49C1': '#B5654B', '#C149AD': '#8A8069',
+    '#49C199': '#1F6F63', '#C19949': '#7A8B5E', '#49ADC1': '#A6685C', '#C14971': '#5B7C99',
+    '#5A0783': '#4E6B45', '#1C0783': '#B5654B', '#83076E': '#8A8069',
+    '#07835A': '#1F6F63', '#835A07': '#7A8B5E', '#076E83': '#A6685C', '#830730': '#5B7C99',
+  };
+  // Устаревшие строгие цвета -> актуальные строгие цвета (миграция без ухода в тёплые)
+  const STRICT_LEGACY_TO_CURRENT = {
+    '#8B10C8': '#760086', '#5031EE': '#4B0082', '#A40D8A': '#A20092',
+    '#086647': '#004225', '#77530A': '#800020', '#096273': '#4A0AB8', '#B10E44': '#5129E1',
+    '#9948C1': '#760086', '#5D49C1': '#4B0082', '#C149AD': '#A20092',
+    '#49C199': '#004225', '#C19949': '#800020', '#49ADC1': '#4A0AB8', '#C14971': '#5129E1',
+    '#5A0783': '#760086', '#1C0783': '#4B0082', '#83076E': '#A20092',
+    '#07835A': '#004225', '#835A07': '#800020', '#076E83': '#4A0AB8', '#830730': '#5129E1',
+  };
+  const PACK_COLOR_STRICT_MAP = WARM_TO_STRICT_MAP;
+  function pc(hex) {
+    return currentTheme === 'strict' ? (WARM_TO_STRICT_MAP[hex] || hex) : hex;
+  }
 
   // ==== ПРЕДУСТАНОВЛЕННЫЕ НАБОРЫ ТЕМ (локализованные) ====
   function buildDefaultPack(lang) {
@@ -434,11 +489,11 @@
     const s = PACKS[lang] || PACKS.ru;
     return {
       categories: [
-        { id: "work", color: "#4E6B45", label: s.c1, order: 0, stages: [
+        { id: "work", color: pc("#4E6B45"), label: s.c1, order: 0, stages: [
           { id: "work-inbox", label: s.s1 }, { id: "work-progress", label: s.s2 }, { id: "work-done", label: s.s3 },
         ]},
-        { id: "personal", color: "#B5654B", label: s.c2, order: 1, stages: [] },
-        { id: "other", color: "#8A8069", label: s.c3, order: 2, stages: [] },
+        { id: "personal", color: pc("#B5654B"), label: s.c2, order: 1, stages: [] },
+        { id: "other", color: pc("#8A8069"), label: s.c3, order: 2, stages: [] },
       ],
       clips: [
         { id: 'c1', text: s.t1, categoryId: 'work', stageId: 'work-inbox', copyCount: 3, pinned: false, order: 0, updatedAt: new Date().toISOString() },
@@ -481,7 +536,7 @@
     const s = PACKS[lang] || PACKS.ru;
     return {
       categories: [
-        { id: 'fn-funnel', color: '#1F6F63', label: s.funnel, order: 0, stages: [
+        { id: 'fn-funnel', color: pc('#1F6F63'), label: s.funnel, order: 0, stages: [
           { id: 'fn-1', label: s.st1 }, { id: 'fn-2', label: s.st2 }, { id: 'fn-3', label: s.st3 },
           { id: 'fn-4', label: s.st4 }, { id: 'fn-5', label: s.st5 }, { id: 'fn-6', label: s.st6 },
         ]},
@@ -525,11 +580,11 @@
     const s = PACKS[lang] || PACKS.ru;
     return {
       categories: [
-        { id: 'tp-lessons', color: '#4E6B45', label: s.lessons, order: 0, stages: [
+        { id: 'tp-lessons', color: pc('#4E6B45'), label: s.lessons, order: 0, stages: [
           { id: 'tp-confirm', label: s.confirm }, { id: 'tp-reschedule', label: s.reschedule }, { id: 'tp-homework', label: s.homework },
         ]},
-        { id: 'tp-payment', color: '#B5654B', label: s.payment, order: 1, stages: [] },
-        { id: 'tp-materials', color: '#8A8069', label: s.materials, order: 2, stages: [] },
+        { id: 'tp-payment', color: pc('#B5654B'), label: s.payment, order: 1, stages: [] },
+        { id: 'tp-materials', color: pc('#8A8069'), label: s.materials, order: 2, stages: [] },
       ],
       clips: [
         { id: 'tpc1', text: s.t1, categoryId: 'tp-lessons', stageId: 'tp-confirm', copyCount: 4, pinned: true, order: 0, updatedAt: new Date().toISOString() },
@@ -577,12 +632,12 @@
     const s = PACKS[lang] || PACKS.ru;
     return {
       categories: [
-        { id: 'rp-contact', color: '#7A8B5E', label: s.contact, order: 0, stages: [] },
-        { id: 'rp-objects', color: '#A6685C', label: s.objects, order: 1, stages: [
+        { id: 'rp-contact', color: pc('#7A8B5E'), label: s.contact, order: 0, stages: [] },
+        { id: 'rp-objects', color: pc('#A6685C'), label: s.objects, order: 1, stages: [
           { id: 'rp-studio', label: s.studio }, { id: 'rp-onebed', label: s.oneBed }, { id: 'rp-twobed', label: s.twoBed },
         ]},
-        { id: 'rp-showings', color: '#5B7C99', label: s.showings, order: 2, stages: [] },
-        { id: 'rp-documents', color: '#8A8069', label: s.documents, order: 3, stages: [] },
+        { id: 'rp-showings', color: pc('#5B7C99'), label: s.showings, order: 2, stages: [] },
+        { id: 'rp-documents', color: pc('#8A8069'), label: s.documents, order: 3, stages: [] },
       ],
       clips: [
         { id: 'rpc0a', text: s.t0a, categoryId: 'rp-contact', stageId: null, copyCount: 0, pinned: true, order: 0, updatedAt: new Date().toISOString() },
@@ -601,7 +656,7 @@
     ru: {
       settingsTitle: "Настройки", viewToggleTitle: "Вид: сетка/список", allThemes: "Все темы",
       searchPlaceholder: "Поиск…", editTitle: "Редактировать", pinAction: "Закрепить", unpinAction: "Открепить",
-      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)", descPlaceholder: "Описание (необязательно)… можно с {переменными}", signInGoogle: "Войти через Google", loginError: "Ошибка входа: ", themeSettingsLabel: "Тема оформления", themeLight: "Светлая", themeDark: "Тёмная",
+      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)", descPlaceholder: "Описание (необязательно)… можно с {переменными}", signInGoogle: "Войти через Google", loginError: "Ошибка входа: ", themeSettingsLabel: "Тема оформления", themeLight: "Светлая", themeDark: "Тёмная", themeStrict: "Строгая",
       textPlaceholder: "Текст ответа… можно с {переменными}", themeFieldLabel: "Тема", sectionFieldLabel: "Раздел", textRequired: "Введите текст ответа — без него карточку сохранить нельзя",
       save: "Сохранить", deleteAction: "Удалить", fillTitle: "Заполни перед копированием", copyAction: "Скопировать",
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
@@ -632,7 +687,7 @@
     en: {
       settingsTitle: "Settings", viewToggleTitle: "View: grid/list", allThemes: "All themes",
       searchPlaceholder: "Search…", editTitle: "Edit", pinAction: "Pin", unpinAction: "Unpin",
-      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)", descPlaceholder: "Description (optional)… you can use {variables}", signInGoogle: "Sign in with Google", loginError: "Sign-in error: ", themeSettingsLabel: "Appearance", themeLight: "Light", themeDark: "Dark",
+      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)", descPlaceholder: "Description (optional)… you can use {variables}", signInGoogle: "Sign in with Google", loginError: "Sign-in error: ", themeSettingsLabel: "Appearance", themeLight: "Light", themeDark: "Dark", themeStrict: "Strict",
       textPlaceholder: "Reply text… you can use {variables}", themeFieldLabel: "Theme", sectionFieldLabel: "Section", textRequired: "Enter the reply text — a card can't be saved without it",
       save: "Save", deleteAction: "Delete", fillTitle: "Fill in before copying", copyAction: "Copy",
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
@@ -663,7 +718,7 @@
     es: {
       settingsTitle: "Ajustes", viewToggleTitle: "Vista: cuadrícula/lista", allThemes: "Todos los temas",
       searchPlaceholder: "Buscar…", editTitle: "Editar", pinAction: "Fijar", unpinAction: "Quitar fijado",
-      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)", descPlaceholder: "Descripción (opcional)… puedes usar {variables}", signInGoogle: "Iniciar sesión con Google", loginError: "Error al iniciar sesión: ", themeSettingsLabel: "Apariencia", themeLight: "Claro", themeDark: "Oscuro",
+      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)", descPlaceholder: "Descripción (opcional)… puedes usar {variables}", signInGoogle: "Iniciar sesión con Google", loginError: "Error al iniciar sesión: ", themeSettingsLabel: "Apariencia", themeLight: "Claro", themeDark: "Oscuro", themeStrict: "Estricto",
       textPlaceholder: "Texto de la respuesta… puedes usar {variables}", themeFieldLabel: "Tema", sectionFieldLabel: "Sección", textRequired: "Escribe el texto de la respuesta — sin él no se puede guardar la tarjeta",
       save: "Guardar", deleteAction: "Eliminar", fillTitle: "Completa antes de copiar", copyAction: "Copiar",
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
@@ -1361,7 +1416,7 @@
   async function addCategory(label) {
     const trimmed = label.trim().slice(0, 16);
     if (!trimmed) return;
-    const color = NEW_CATEGORY_COLORS[categories.length % NEW_CATEGORY_COLORS.length];
+    const color = getNewCategoryColors()[categories.length % getNewCategoryColors().length];
     const id = 'cat' + Date.now();
     await setDoc(doc(db, 'users', currentUser.uid, 'categories', id), { id, label: trimmed, color, order: categories.length, stages: [] });
     $('categorySheetInput').value = '';
@@ -1387,12 +1442,22 @@
     openSheetTracked('confirmSheet');
   }
 
+  let renameDraftColor = null;
+  function renderRenameColorGrid() {
+    const colors = getNewCategoryColors();
+    $('renameColorGrid').innerHTML = colors.map((c) => `
+      <div class="palette-swatch ${c === renameDraftColor ? 'active' : ''}" style="background:${c};" data-rename-color="${c}"></div>
+    `).join('');
+  }
   function renameCategory(id) {
     const cat = catById(id);
     if (!cat) return;
     renameTarget = { type: 'category', id };
     $('renameSheetTitle').textContent = t('renameThemeTitle');
     $('renameSheetInput').value = cat.label;
+    renameDraftColor = cat.color;
+    $('renameColorRow').style.display = 'block';
+    renderRenameColorGrid();
     openSheetTracked('renameSheet');
   }
   async function addStage(categoryId, label) {
@@ -1421,6 +1486,8 @@
     renameTarget = { type: 'stage', id: stageId, categoryId };
     $('renameSheetTitle').textContent = t('renameStageTitle');
     $('renameSheetInput').value = stage.label;
+    $('renameColorRow').style.display = 'none';
+    renameDraftColor = null;
     openSheetTracked('renameSheet');
   }
 
@@ -1429,7 +1496,9 @@
     const next = $('renameSheetInput').value.trim();
     if (!next) { closeSheetTracked('renameSheet'); renameTarget = null; return; }
     if (renameTarget.type === 'category') {
-      await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.id), { label: next.slice(0, 16) });
+      const updates = { label: next.slice(0, 16) };
+      if (renameDraftColor) updates.color = renameDraftColor;
+      await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.id), updates);
     } else {
       const cat = catById(renameTarget.categoryId);
       const stages = (cat?.stages || []).map((s) => (s.id === renameTarget.id ? { ...s, label: next.slice(0, 18) } : s));
@@ -1948,21 +2017,42 @@
   const THEMES = [
     { code: 'light', key: 'themeLight', color: '#F4E8D0', textColor: '#2E2A22' },
     { code: 'dark', key: 'themeDark', color: '#211C16', textColor: '#F3E9D2' },
+    { code: 'strict', key: 'themeStrict', color: '#16151C', textColor: '#9D4EDD' },
   ];
+  const THEME_BG_COLOR = { light: '#F4E8D0', dark: '#211C16', strict: '#16151C' };
   let currentTheme = localStorage.getItem('theme') || 'light';
   function renderThemePicker() {
     $('themePickGrid').innerHTML = THEMES.map((th) => `
       <div class="palette-swatch ${th.code === currentTheme ? 'active' : ''}" style="background:${th.color}; display:flex; align-items:center; justify-content:center; aspect-ratio:auto; height:44px; border-radius:10px; font-size:11px; font-weight:700; color:${th.textColor}; border:1px solid var(--line);" data-theme-opt="${th.code}">${t(th.key)}</div>
     `).join('');
   }
-  function setTheme(code) {
+  async function recolorCategoriesForTheme(newCode, oldCode) {
+    // Перекрашиваем УЖЕ существующие темы под новую палитру — без ручных кнопок "обновить".
+    if (newCode === oldCode) return;
+    const map = newCode === 'strict' ? { ...WARM_TO_STRICT_MAP, ...STRICT_LEGACY_TO_CURRENT }
+      : (oldCode === 'strict' ? STRICT_TO_WARM_MAP : null);
+    if (!map) return; // переключение между Светлой и Тёмной цвета категорий не трогает
+    for (const cat of categories) {
+      const target = map[cat.color];
+      if (!target || target === cat.color) continue;
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid, 'categories', cat.id), { color: target });
+      } catch (err) {
+        console.error('Не удалось перекрасить тему при смене оформления:', err);
+      }
+    }
+  }
+  function setTheme(code, isUserAction) {
+    if (!THEME_BG_COLOR[code]) code = 'light';
+    const oldCode = currentTheme;
     currentTheme = code;
     localStorage.setItem('theme', code);
-    document.documentElement.setAttribute('data-theme', code === 'dark' ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', code);
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.content = code === 'dark' ? '#211C16' : '#F4E8D0';
-    $('themeValue').innerHTML = `${t(code === 'dark' ? 'themeDark' : 'themeLight')} <span>›</span>`;
+    if (metaTheme) metaTheme.content = THEME_BG_COLOR[code];
+    $('themeValue').innerHTML = `${t('theme' + code[0].toUpperCase() + code.slice(1))} <span>›</span>`;
     renderThemePicker();
+    if (isUserAction) recolorCategoriesForTheme(code, oldCode);
   }
   $('themeRow').onclick = () => {
     const grid = $('themePickGrid');
@@ -1974,7 +2064,7 @@
   $('themePickGrid').addEventListener('click', (e) => {
     const el = e.target.closest('[data-theme-opt]');
     if (!el) return;
-    setTheme(el.dataset.themeOpt);
+    setTheme(el.dataset.themeOpt, true);
     $('themePickGrid').style.display = 'none';
   });
   setTheme(currentTheme); // применяем сохранённое значение и выставляем текст кнопки при загрузке
@@ -1984,6 +2074,12 @@
   $('categorySheet').addEventListener('click', (e) => { if (e.target.id === 'categorySheet') closeSheetTracked('categorySheet'); });
 
   $('renameSheetSave').onclick = applyRename;
+  $('renameColorGrid').addEventListener('click', (e) => {
+    const el = e.target.closest('[data-rename-color]');
+    if (!el) return;
+    renameDraftColor = el.dataset.renameColor;
+    renderRenameColorGrid();
+  });
   $('renameSheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRename(); });
   $('renameSheet').addEventListener('click', (e) => { if (e.target.id === 'renameSheet') { closeSheetTracked('renameSheet'); renameTarget = null; } });
 
