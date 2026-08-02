@@ -714,6 +714,33 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // ==== АППАРАТНАЯ КНОПКА "НАЗАД" ЗАКРЫВАЕТ ОКНО, А НЕ ВЕСЬ APP ====
+  // Каждое открытие шторки добавляет запись в историю браузера; кнопка "назад"
+  // (или системный жест) откатывает именно её через popstate, а не сворачивает приложение.
+  let sheetStack = [];
+  function openSheetTracked(id) {
+    $(id).classList.add('open');
+    sheetStack.push(id);
+    history.pushState({ sendlistSheet: true }, '');
+  }
+  function closeSheetTracked(id) {
+    if (!sheetStack.includes(id)) { $(id).classList.remove('open'); return; }
+    history.back(); // реальное закрытие произойдёт в обработчике popstate ниже — единая точка правды
+  }
+  window.addEventListener('popstate', () => {
+    const id = sheetStack.pop();
+    if (id) $(id).classList.remove('open');
+  });
+  function switchSheetTracked(fromId, toId) {
+    // Закрываем текущее окно БЕЗ ухода в history.back() (иначе гонка с последующим
+    // pushState) и сразу открываем новое с одной свежей записью в истории.
+    const idx = sheetStack.lastIndexOf(fromId);
+    if (idx !== -1) sheetStack.splice(idx, 1);
+    $(fromId).classList.remove('open');
+    openSheetTracked(toId);
+  }
+
+
   $('googleBtn').onclick = async () => {
     $('loginError').style.display = 'none';
     try {
@@ -760,7 +787,7 @@
     }
     lastAppliedPack = packId;
     localStorage.setItem('lastPack', packId);
-    if (!silent) $('onboardingSheet').classList.remove('open');
+    if (!silent) closeSheetTracked('onboardingSheet');
   }
 
   function subscribe(uid) {
@@ -783,7 +810,7 @@
       $('app').classList.add('visible');
       const hasData = await hasAnyCategories(user.uid);
       subscribe(user.uid);
-      if (!hasData) $('onboardingSheet').classList.add('open');
+      if (!hasData) openSheetTracked('onboardingSheet');
     } else {
       $('loginScreen').classList.add('visible');
       $('app').classList.remove('visible');
@@ -934,7 +961,7 @@
     } else {
       box.innerHTML = `<div style="color:var(--text-dim); padding:30px; display:flex; flex-direction:column; align-items:center; gap:10px;">${fileIconSvg(att.type, 32)}<span style="font-size:12.5px;">${escapeHtml(att.name || '')}</span></div>`;
     }
-    $('attachPreviewSheet').classList.add('open');
+    openSheetTracked('attachPreviewSheet');
     prefetchPreviewFile(clip); // не ждём — идёт в фоне, пока пользователь смотрит превью
   }
 
@@ -948,7 +975,7 @@
       fillModalClip = clip;
       fillModalValues = Object.fromEntries(ph.map((p) => [p, '']));
       renderFillSheet();
-      $('fillSheet').classList.add('open');
+      openSheetTracked('fillSheet');
     } else {
       const ok = await copyText(clip.text);
       await registerCopy(clip.id);
@@ -1153,7 +1180,7 @@
     refreshAttachPreview();
     hideUploadProgress();
     $('attachErrorBanner').style.display = 'none';
-    $('editSheet').classList.add('open');
+    openSheetTracked('editSheet');
   }
   function openNewClipModal() {
     editingClipId = 'new';
@@ -1168,7 +1195,7 @@
     refreshAttachPreview();
     hideUploadProgress();
     $('attachErrorBanner').style.display = 'none';
-    $('editSheet').classList.add('open');
+    openSheetTracked('editSheet');
   }
   function showUploadProgress(pct) {
     $('uploadProgressRow').style.display = 'flex';
@@ -1275,7 +1302,7 @@
     editingClipId = null;
     editPendingFile = null;
     editAttachmentRemoved = false;
-    $('editSheet').classList.remove('open');
+    closeSheetTracked('editSheet');
   }
 
   function toggleColorPick() {
@@ -1338,7 +1365,7 @@
     const id = 'cat' + Date.now();
     await setDoc(doc(db, 'users', currentUser.uid, 'categories', id), { id, label: trimmed, color, order: categories.length, stages: [] });
     $('categorySheetInput').value = '';
-    $('categorySheet').classList.remove('open');
+    closeSheetTracked('categorySheet');
     selectCategory(id);
   }
   async function deleteCategory(id) {
@@ -1357,7 +1384,7 @@
   function askConfirm(message, onYes) {
     confirmCallback = onYes;
     $('confirmSheetText').textContent = message;
-    $('confirmSheet').classList.add('open');
+    openSheetTracked('confirmSheet');
   }
 
   function renameCategory(id) {
@@ -1366,7 +1393,7 @@
     renameTarget = { type: 'category', id };
     $('renameSheetTitle').textContent = t('renameThemeTitle');
     $('renameSheetInput').value = cat.label;
-    $('renameSheet').classList.add('open');
+    openSheetTracked('renameSheet');
   }
   async function addStage(categoryId, label) {
     const trimmed = label.trim().slice(0, 18);
@@ -1394,13 +1421,13 @@
     renameTarget = { type: 'stage', id: stageId, categoryId };
     $('renameSheetTitle').textContent = t('renameStageTitle');
     $('renameSheetInput').value = stage.label;
-    $('renameSheet').classList.add('open');
+    openSheetTracked('renameSheet');
   }
 
   async function applyRename() {
-    if (!renameTarget) { $('renameSheet').classList.remove('open'); return; }
+    if (!renameTarget) { closeSheetTracked('renameSheet'); return; }
     const next = $('renameSheetInput').value.trim();
-    if (!next) { $('renameSheet').classList.remove('open'); renameTarget = null; return; }
+    if (!next) { closeSheetTracked('renameSheet'); renameTarget = null; return; }
     if (renameTarget.type === 'category') {
       await updateDoc(doc(db, 'users', currentUser.uid, 'categories', renameTarget.id), { label: next.slice(0, 16) });
     } else {
@@ -1416,7 +1443,7 @@
         renderStagePickList();
       }
     }, 300);
-    $('renameSheet').classList.remove('open');
+    closeSheetTracked('renameSheet');
     renameTarget = null;
   }
 
@@ -1718,8 +1745,8 @@
         break;
       }
       case 'select-stage': activeStage = id; renderStages(); renderGrid(); break;
-      case 'manage-stages': renderStagesSheet(); $('stagesSheet').classList.add('open'); break;
-      case 'new-category': $('categorySheetInput').value=''; $('categorySheet').classList.add('open'); $('listDropdown').classList.remove('open'); break;
+      case 'manage-stages': renderStagesSheet(); openSheetTracked('stagesSheet'); break;
+      case 'new-category': $('categorySheetInput').value=''; openSheetTracked('categorySheet'); $('listDropdown').classList.remove('open'); break;
       case 'delete-cat': askConfirm(t('confirmDeleteTheme'), async () => { await deleteCategory(id); renderDropdown(); }); break;
       case 'rename-cat': renameCategory(id); break;
       case 'quick-copy': case 'card-click': {
@@ -1752,7 +1779,7 @@
     ta.setSelectionRange(cursorPos, cursorPos);
   };
   $('editSheetSave').onclick = saveEditSheet;
-  $('editSheet').addEventListener('click', (e) => { if (e.target.id === 'editSheet') $('editSheet').classList.remove('open'); });
+  $('editSheet').addEventListener('click', (e) => { if (e.target.id === 'editSheet') closeSheetTracked('editSheet'); });
 
   $('editThemeRow').onclick = toggleColorPick;
   $('editStageRow').onclick = toggleStagePick;
@@ -1828,13 +1855,13 @@
     if (editingClipId === 'new') return;
     const clip = clips.find((c) => c.id === editingClipId);
     if (clip) duplicateClip(clip);
-    $('editSheet').classList.remove('open');
+    closeSheetTracked('editSheet');
   };
   $('editDeleteBtn').onclick = () => {
     if (editingClipId === 'new') return;
     askConfirm(t('confirmDeleteClip'), async () => {
       await deleteClip(editingClipId);
-      $('editSheet').classList.remove('open');
+      closeSheetTracked('editSheet');
     });
   };
 
@@ -1843,10 +1870,10 @@
     const ok = await copyText(finalText);
     registerCopy(fillModalClip.id);
     flashStatus(ok ? t('copiedOk') : t('copyFail'), ok ? 1800 : 2800);
-    $('fillSheet').classList.remove('open');
+    closeSheetTracked('fillSheet');
     renderAll();
   };
-  $('fillSheet').addEventListener('click', (e) => { if (e.target.id === 'fillSheet') $('fillSheet').classList.remove('open'); });
+  $('fillSheet').addEventListener('click', (e) => { if (e.target.id === 'fillSheet') closeSheetTracked('fillSheet'); });
   async function savePreviewFields() {
     if (!previewClip) return;
     const newTitle = $('attachPreviewTitleInput').value.trim();
@@ -1872,7 +1899,7 @@
   $('attachPreviewSheet').addEventListener('click', (e) => {
     if (e.target.id === 'attachPreviewSheet') {
       savePreviewFields();
-      $('attachPreviewSheet').classList.remove('open');
+      closeSheetTracked('attachPreviewSheet');
       $('attachPreviewMedia').innerHTML = ''; // остановить видео при закрытии
       if (previewSheetObjectUrl) { URL.revokeObjectURL(previewSheetObjectUrl); previewSheetObjectUrl = null; }
       previewClip = null;
@@ -1901,9 +1928,9 @@
       });
     }
   }
-  $('settingsBtn').onclick = () => { applyStaticTexts(); $('settingsSheet').classList.add('open'); };
-  $('settingsSheet').addEventListener('click', (e) => { if (e.target.id === 'settingsSheet') $('settingsSheet').classList.remove('open'); });
-  $('templatesRow').onclick = () => { $('settingsSheet').classList.remove('open'); $('onboardingSheet').classList.add('open'); };
+  $('settingsBtn').onclick = () => { applyStaticTexts(); openSheetTracked('settingsSheet'); };
+  $('settingsSheet').addEventListener('click', (e) => { if (e.target.id === 'settingsSheet') closeSheetTracked('settingsSheet'); });
+  $('templatesRow').onclick = () => { switchSheetTracked('settingsSheet', 'onboardingSheet'); };
   $('languageRow').onclick = () => {
     const grid = $('languagePickGrid');
     const isOpen = grid.style.display !== 'none';
@@ -1954,23 +1981,23 @@
 
   $('categorySheetSave').onclick = () => addCategory($('categorySheetInput').value);
   $('categorySheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCategory(e.target.value); });
-  $('categorySheet').addEventListener('click', (e) => { if (e.target.id === 'categorySheet') $('categorySheet').classList.remove('open'); });
+  $('categorySheet').addEventListener('click', (e) => { if (e.target.id === 'categorySheet') closeSheetTracked('categorySheet'); });
 
   $('renameSheetSave').onclick = applyRename;
   $('renameSheetInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') applyRename(); });
-  $('renameSheet').addEventListener('click', (e) => { if (e.target.id === 'renameSheet') { $('renameSheet').classList.remove('open'); renameTarget = null; } });
+  $('renameSheet').addEventListener('click', (e) => { if (e.target.id === 'renameSheet') { closeSheetTracked('renameSheet'); renameTarget = null; } });
 
   $('confirmSheetOk').onclick = async () => {
     const cb = confirmCallback;
     confirmCallback = null;
-    $('confirmSheet').classList.remove('open');
+    closeSheetTracked('confirmSheet');
     if (cb) await cb();
   };
   $('confirmSheetCancel').onclick = () => {
     confirmCallback = null;
-    $('confirmSheet').classList.remove('open');
+    closeSheetTracked('confirmSheet');
   };
-  $('confirmSheet').addEventListener('click', (e) => { if (e.target.id === 'confirmSheet') { confirmCallback = null; $('confirmSheet').classList.remove('open'); } });
+  $('confirmSheet').addEventListener('click', (e) => { if (e.target.id === 'confirmSheet') { confirmCallback = null; closeSheetTracked('confirmSheet'); } });
 
   $('stagesSheetAdd').onclick = async () => {
     const cat = currentCat();
@@ -1981,7 +2008,7 @@
   $('stagesSheetInput').addEventListener('keydown', async (e) => {
     if (e.key === 'Enter') { const cat = currentCat(); await addStage(cat.id, e.target.value); e.target.value=''; renderStagesSheet(); }
   });
-  $('stagesSheet').addEventListener('click', (e) => { if (e.target.id === 'stagesSheet') $('stagesSheet').classList.remove('open'); });
+  $('stagesSheet').addEventListener('click', (e) => { if (e.target.id === 'stagesSheet') closeSheetTracked('stagesSheet'); });
 
   $('searchBtn').onclick = () => {
     const inp = $('searchInput');
