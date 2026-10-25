@@ -110,7 +110,11 @@
   .clip-card.drag-ghost { opacity: 0.25; }
   .clip-card.drag-chosen { box-shadow: 4px 10px 22px rgba(46,42,34,0.4); transform: scale(1.04) rotate(-1.5deg); }
   .clip-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .clip-tagname { font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: none; }
+  .clip-tagname { font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .clip-top > .clip-tagname { flex: 1 1 auto; margin-right: 4px; }
+  .clip-right { flex-shrink: 0; }
+  .clip-entity { background: rgba(255,255,255,0.16); border: none; color: #fff; cursor: pointer; width: 24px; height: 24px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .clip-entity:active { background: rgba(255,255,255,0.32); }
   .clip-right { display: flex; align-items: center; gap: 6px; }
   .clip-pin { display: flex; align-items: center; color: rgba(255,255,255,0.85); }
   .clip-attach { display: flex; align-items: center; color: rgba(255,255,255,0.85); }
@@ -429,7 +433,7 @@
 
   const STALE_DAYS = 60;
   const NEW_CATEGORY_COLORS_WARM = ["#5B7C99", "#9C7A4E", "#6B5B95", "#7A8B5E", "#A6685C", "#5E7A7A", "#1F6F63", "#C97361"];
-  const NEW_CATEGORY_COLORS_STRICT = ["#760086", "#4B0082", "#A20092", "#004225", "#800020", "#4A0AB8", "#5129E1", "#191970", "#490648", "#1E272C", "#8100A8", "#0000CC"];
+  const NEW_CATEGORY_COLORS_STRICT = ["#760086", "#C45018", "#2B7A8C", "#1A3D4F", "#004225", "#800020", "#4B0082"];
   function getNewCategoryColors() {
     return currentTheme === 'strict' ? NEW_CATEGORY_COLORS_STRICT : NEW_CATEGORY_COLORS_WARM;
   }
@@ -437,11 +441,13 @@
   // "именных" цветов (Purple, Indigo, Dark Magenta и т.д.) — насыщенные, узнаваемые, все хорошо
   // читаются с белым текстом (проверено, контраст 7:1+ у каждого).
   const WARM_TO_STRICT_MAP = {
-    '#4E6B45': '#760086', '#B5654B': '#4B0082', '#8A8069': '#A20092',
-    '#1F6F63': '#004225', '#7A8B5E': '#800020', '#A6685C': '#4A0AB8', '#5B7C99': '#5129E1',
-    '#9C7A4E': '#800020', '#6B5B95': '#760086', '#5E7A7A': '#004225', '#C97361': '#A20092',
+    '#4E6B45': '#760086', '#B5654B': '#C45018', '#8A8069': '#2B7A8C',
+    '#1F6F63': '#2B7A8C', '#7A8B5E': '#004225', '#A6685C': '#800020',
+    '#5B7C99': '#2B7A8C', '#9C7A4E': '#C45018', '#6B5B95': '#760086',
+    '#5E7A7A': '#2B7A8C', '#C97361': '#C45018',
   };
   const STRICT_TO_WARM_MAP = {
+    '#C45018': '#B5654B', '#2B7A8C': '#5E7A7A', '#1A3D4F': '#5B7C99',
     '#760086': '#4E6B45', '#4B0082': '#B5654B', '#A20092': '#8A8069',
     '#004225': '#1F6F63', '#800020': '#7A8B5E', '#4A0AB8': '#A6685C', '#5129E1': '#5B7C99',
     // 5 дополнительных цветов, добавленных для разнообразия палитры
@@ -458,12 +464,16 @@
   };
   // Устаревшие строгие цвета -> актуальные строгие цвета (миграция без ухода в тёплые)
   const STRICT_LEGACY_TO_CURRENT = {
-    '#8B10C8': '#760086', '#5031EE': '#4B0082', '#A40D8A': '#A20092',
-    '#086647': '#004225', '#77530A': '#800020', '#096273': '#4A0AB8', '#B10E44': '#5129E1',
-    '#9948C1': '#760086', '#5D49C1': '#4B0082', '#C149AD': '#A20092',
-    '#49C199': '#004225', '#C19949': '#800020', '#49ADC1': '#4A0AB8', '#C14971': '#5129E1',
-    '#5A0783': '#760086', '#1C0783': '#4B0082', '#83076E': '#A20092',
-    '#07835A': '#004225', '#835A07': '#800020', '#076E83': '#4A0AB8', '#830730': '#5129E1',
+    '#8B10C8': '#760086', '#5031EE': '#4B0082', '#A40D8A': '#800020',
+    '#086647': '#004225', '#77530A': '#800020', '#096273': '#4B0082',
+    '#B10E44': '#2B7A8C', '#9948C1': '#760086', '#5D49C1': '#4B0082',
+    '#C149AD': '#800020', '#49C199': '#004225', '#C19949': '#800020',
+    '#49ADC1': '#4B0082', '#C14971': '#2B7A8C', '#5A0783': '#760086',
+    '#1C0783': '#4B0082', '#83076E': '#800020', '#07835A': '#004225',
+    '#835A07': '#800020', '#076E83': '#4B0082', '#830730': '#2B7A8C',
+    '#A20092': '#800020', '#4A0AB8': '#4B0082', '#5129E1': '#2B7A8C',
+    '#191970': '#1A3D4F', '#490648': '#760086', '#1E272C': '#1A3D4F',
+    '#8100A8': '#760086', '#0000CC': '#2B7A8C',
   };
   const PACK_COLOR_STRICT_MAP = WARM_TO_STRICT_MAP;
   function pc(hex) {
@@ -662,7 +672,7 @@
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
       templatesLabel: "Шаблоны", attachFilePrompt: "Прикрепить файл / фото / видео", attachFileReplace: "Заменить файл / фото / видео",
       attachHint: "Фото, видео, PDF, DOC — до 50 МБ на файл", attachTooBig: "Файл больше {n}МБ — выбери файл поменьше",
-      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение", privacyPolicyLabel: "Политика конфиденциальности", attachPreparing: "Готовим файл…", templateLangUpdated: "Шаблон обновлён на выбранный язык",
+      attachSaveError: "Ошибка сохранения файла", attachNotFound: "Файл не найден локально", attachUploading: "Загрузка…", shareLabel: "Поделиться", attachmentTitle: "Вложение", privacyPolicyLabel: "Политика конфиденциальности", attachPreparing: "Готовим файл…", templateLangUpdated: "Шаблон обновлён на выбранный язык", entity_email: "Email скопирован", entity_phone: "Телефон скопирован", entity_link: "Ссылка скопирована",
       themeNamePlaceholder: "Название темы…", create: "Создать", renameTitle: "Переименовать",
       renameThemeTitle: "Переименовать тему", renameStageTitle: "Переименовать раздел", namePlaceholder: "Название…",
       confirmTitle: "Удалить?", confirmOk: "Удалить", confirmCancel: "Отмена",
@@ -693,7 +703,7 @@
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
       templatesLabel: "Templates", attachFilePrompt: "Attach file / photo / video", attachFileReplace: "Replace file / photo / video",
       attachHint: "Photo, video, PDF, DOC — up to 50MB per file", attachTooBig: "File is larger than {n}MB — choose a smaller one",
-      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment", privacyPolicyLabel: "Privacy Policy", attachPreparing: "Preparing…", templateLangUpdated: "Template updated to the selected language",
+      attachSaveError: "Error saving file", attachNotFound: "File not found locally", attachUploading: "Uploading…", shareLabel: "Share", attachmentTitle: "Attachment", privacyPolicyLabel: "Privacy Policy", attachPreparing: "Preparing…", templateLangUpdated: "Template updated to the selected language", entity_email: "Email copied", entity_phone: "Phone copied", entity_link: "Link copied",
       themeNamePlaceholder: "Theme name…", create: "Create", renameTitle: "Rename",
       renameThemeTitle: "Rename theme", renameStageTitle: "Rename section", namePlaceholder: "Name…",
       confirmTitle: "Delete?", confirmOk: "Delete", confirmCancel: "Cancel",
@@ -724,7 +734,7 @@
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
       templatesLabel: "Plantillas", attachFilePrompt: "Adjuntar archivo / foto / vídeo", attachFileReplace: "Reemplazar archivo / foto / vídeo",
       attachHint: "Foto, vídeo, PDF, DOC — hasta 50 MB por archivo", attachTooBig: "El archivo supera los {n}MB — elige uno más pequeño",
-      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", privacyPolicyLabel: "Política de privacidad", attachPreparing: "Preparando…", templateLangUpdated: "Plantilla actualizada al idioma seleccionado",
+      attachSaveError: "Error al guardar el archivo", attachNotFound: "Archivo no encontrado localmente", attachUploading: "Subiendo…", shareLabel: "Compartir", attachmentTitle: "Archivo adjunto", privacyPolicyLabel: "Política de privacidad", attachPreparing: "Preparando…", templateLangUpdated: "Plantilla actualizada al idioma seleccionado", entity_email: "Email copiado", entity_phone: "Teléfono copiado", entity_link: "Enlace copiado",
       themeNamePlaceholder: "Nombre del tema…", create: "Crear", renameTitle: "Renombrar",
       renameThemeTitle: "Renombrar tema", renameStageTitle: "Renombrar sección", namePlaceholder: "Nombre…",
       confirmTitle: "¿Eliminar?", confirmOk: "Eliminar", confirmCancel: "Cancelar",
@@ -827,12 +837,52 @@
     return !snap.empty;
   }
 
-  async function applyPack(packId, lang, silent) {
-    const useLang = lang || currentLang;
-    const pack = packId === 'teacher' ? buildTeacherPack(useLang)
-      : packId === 'realtor' ? buildRealtorPack(useLang)
-      : packId === 'funnel' ? buildFunnelPack(useLang)
-      : buildDefaultPack(useLang);
+  function buildPackById(packId, lang) {
+    return packId === 'teacher' ? buildTeacherPack(lang)
+      : packId === 'realtor' ? buildRealtorPack(lang)
+      : packId === 'funnel' ? buildFunnelPack(lang)
+      : buildDefaultPack(lang);
+  }
+
+  // Тихий перевод шаблона при смене языка: трогаем ТОЛЬКО подписи, которые пользователь не менял.
+  // Ничего не создаём заново, не меняем цвет/порядок/закрепление/вложения, не удаляем пользовательские разделы и этапы.
+  async function translatePackSilently(packId, newLang, oldLang) {
+    const uid = currentUser.uid;
+    const oldPack = buildPackById(packId, oldLang);
+    const newPack = buildPackById(packId, newLang);
+    for (const nc of newPack.categories) {
+      const oc = oldPack.categories.find((c) => c.id === nc.id);
+      const cur = categories.find((c) => c.id === nc.id);
+      if (!cur || !oc) continue; // раздела нет (удалён или не из шаблона) — не воскрешаем
+      const patch = {};
+      if (cur.label === oc.label && cur.label !== nc.label) patch.label = nc.label;
+      const curStages = cur.stages || [];
+      let stagesChanged = false;
+      const mergedStages = curStages.map((st) => {
+        const ost = (oc.stages || []).find((x) => x.id === st.id);
+        const nst = (nc.stages || []).find((x) => x.id === st.id);
+        if (ost && nst && st.label === ost.label && st.label !== nst.label) { stagesChanged = true; return { ...st, label: nst.label }; }
+        return st; // пользовательские этапы и переименованные остаются как есть
+      });
+      if (stagesChanged) patch.stages = mergedStages;
+      if (Object.keys(patch).length) await updateDoc(doc(db, 'users', uid, 'categories', nc.id), patch);
+    }
+    for (const nclip of newPack.clips) {
+      const oclip = oldPack.clips.find((c) => c.id === nclip.id);
+      const cur = clips.find((c) => c.id === nclip.id);
+      if (!cur || !oclip) continue;
+      if (cur.text === oclip.text && cur.text !== nclip.text) {
+        await updateDoc(doc(db, 'users', uid, 'clips', nclip.id), { text: nclip.text });
+      }
+    }
+  }
+
+  async function applyPack(packId, lang, silent, prevLang) {
+    if (silent) {
+      await translatePackSilently(packId, lang || currentLang, prevLang || currentLang);
+      return;
+    }
+    const pack = buildPackById(packId, lang || currentLang);
     for (const cat of pack.categories) {
       await setDoc(doc(db, 'users', currentUser.uid, 'categories', cat.id), cat);
     }
@@ -842,7 +892,7 @@
     }
     lastAppliedPack = packId;
     localStorage.setItem('lastPack', packId);
-    if (!silent) closeSheetTracked('onboardingSheet');
+    closeSheetTracked('onboardingSheet');
   }
 
   function subscribe(uid) {
@@ -1018,6 +1068,52 @@
     }
     openSheetTracked('attachPreviewSheet');
     prefetchPreviewFile(clip); // не ждём — идёт в фоне, пока пользователь смотрит превью
+  }
+
+  // ==== РАЗБОР СУЩНОСТЕЙ: email / телефон / ссылка (первое совпадение каждого типа) ====
+  const ENTITY_ICONS = {
+    email: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-10 6L2 7"></path></svg>',
+    phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
+    link: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+  };
+  function extractEntities(text) {
+    const src = String(text || '');
+    const out = [];
+    const emailM = src.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}/);
+    const urlM = src.match(/(?:https?:\/\/|www\.)[^\s<>"]+/i) || src.match(/\b(?:t\.me|wa\.me|bit\.ly)\/[^\s<>"]+/i);
+    // телефон ищем в тексте без email и ссылок, чтобы не ловить цифры оттуда
+    let rest = src;
+    if (emailM) rest = rest.replace(emailM[0], ' ');
+    if (urlM) rest = rest.replace(urlM[0], ' ');
+    const phoneM = rest.match(/(?<![\w])\+?\d[\d\s().-]{7,}\d(?![\w])/);
+    if (emailM) out.push({ type: 'email', value: emailM[0] });
+    if (phoneM) {
+      const digits = phoneM[0].replace(/\D/g, '');
+      if (digits.length >= 9 && digits.length <= 15) {
+        out.push({ type: 'phone', value: (phoneM[0].trim().startsWith('+') ? '+' : '') + digits });
+      }
+    }
+    if (urlM) {
+      let v = urlM[0].replace(/[.,;:!?)\]]+$/, '');
+      out.push({ type: 'link', value: v });
+    }
+    return out;
+  }
+  function entityButtonsHtml(clip) {
+    if (clip.attachment) return ''; // у карточки с вложением место занято иконкой файла
+    const ents = extractEntities(clip.text);
+    const max = clip.pinned ? 2 : 3;
+    return ents.slice(0, max).map((e) =>
+      `<button class="clip-entity" data-action="copy-entity" data-type="${e.type}" data-id="${clip.id}" title="${escapeHtml(e.value)}">${ENTITY_ICONS[e.type]}</button>`
+    ).join('');
+  }
+  async function copyEntity(clipId, type) {
+    const clip = clips.find((c) => c.id === clipId);
+    if (!clip) return;
+    const ent = extractEntities(clip.text).find((e) => e.type === type);
+    if (!ent) return;
+    const ok = await copyText(ent.value);
+    flashStatus(ok ? t('entity_' + type) : t('copyFail'), ok ? 1800 : 2800);
   }
 
   async function handleCardClick(clip) {
@@ -1697,6 +1793,7 @@
         <div class="clip-top">
           <span class="clip-tagname">${escapeHtml(clip.title || cat.label)}</span>
           <div class="clip-right">
+            ${entityButtonsHtml(clip)}
             ${clip.pinned ? `<span class="clip-pin">⬆</span>` : ''}
             ${clip.attachment ? `<span class="clip-attach" title="${escapeHtml(clip.attachment.name || '')}">${fileIconSvg(clip.attachment.type, 14)}</span>` : ''}
             ${stale ? `<span class="clip-stale-dot" title="${t('checkFreshness')}"></span>` : ''}
@@ -1823,6 +1920,7 @@
         if (clip) await handleCardClick(clip);
         break;
       }
+      case 'copy-entity': await copyEntity(id, btn.dataset.type); break;
       case 'edit-clip': { const clip = clips.find((c) => c.id === id); if (clip) openEditModal(clip); break; }
       case 'open-attachment': { const clip = clips.find((c) => c.id === id); if (clip?.attachment?.url) window.open(clip.attachment.url, '_blank'); break; }
       case 'toggle-pin': await togglePin(id); break;
@@ -1986,13 +2084,14 @@
     `).join('');
   }
   function setLanguage(code) {
+    const prevLang = currentLang;
     currentLang = code;
     localStorage.setItem('lang', code);
     applyStaticTexts();
     renderLanguagePicker();
     renderAll();
     if (lastAppliedPack) {
-      applyPack(lastAppliedPack, code, true).then(() => {
+      applyPack(lastAppliedPack, code, true, prevLang).then(() => {
         flashStatus(t('templateLangUpdated'), 2200);
       });
     }
