@@ -2197,6 +2197,7 @@ function setActiveGroup(code){
     try{db.ref("groups/"+currentGroupId+"/data").off("value");}catch(e){}
     try{db.ref("groups/"+currentGroupId+"/liveSync").off("value");}catch(e){}
     try{db.ref("groups/"+currentGroupId+"/presence").off("value");}catch(e){}
+    try{db.ref("groups/"+currentGroupId+"/liveMaster").off("value",_onLiveMasterChange);}catch(e){}
   }
   _groupListenersAttached=false;
   _lastSentJson=null;
@@ -2243,6 +2244,8 @@ var _groupListenersAttached=false;
 function attachGroupListeners(){
   if(!db||!currentGroupId||_groupListenersAttached)return;
   _groupListenersAttached=true;
+  // Следим, не начал ли кто-то Live мастером — тогда это устройство само войдёт в Live
+  try{db.ref("groups/"+currentGroupId+"/liveMaster").on("value",function(sn){_onLiveMasterChange(sn.val());});}catch(e){}
   var _wasConnectedOnce=false;
   db.ref(".info/connected").on("value",function(snap){
     var dot=document.getElementById("syncDot");
@@ -7734,6 +7737,7 @@ if('serviceWorker' in navigator){
     </div>
     <div id="liveConTitle" style="font-size:13px;color:#fff;font-family:'Golos Text',sans-serif;font-weight:500;letter-spacing:0.5px;"></div>
     <div style="display:flex;align-items:center;gap:10px;">
+      <button class="follow-sync-btn" onclick="toggleFollowMaster()" title="Синхронизация с мастером"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg><span class="follow-sync-lbl">СИНХР.</span></button>
       <button id="liveDeviceRoleBadge" onclick="openDeviceRoleSheet()" style="background:none;border:1px solid #2a2a32;border-radius:6px;padding:4px 8px;cursor:pointer;font-family:'Golos Text',sans-serif;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#666;"></button>
       <button onclick="toggleLiveMode()" id="liveExitBtn" style="background:transparent;border:none;color:var(--mu);font-size:14px;font-weight:400;cursor:pointer;flex-shrink:0;padding:0 0 0 8px;line-height:1;">✕</button>
     </div>
@@ -7871,7 +7875,8 @@ if('serviceWorker' in navigator){
       <div id="lftTitle" style="font-size:12px;color:#f0ece4;font-family:'Golos Text',sans-serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       <div id="lftTabLabel" style="font-size:10px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-family:'Golos Text',sans-serif;margin-top:3px;"></div>
     </div>
-    <div style="display:flex;gap:6px;flex-shrink:0;">
+    <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+      <button class="follow-sync-btn" onclick="toggleFollowMaster()" title="Синхронизация с мастером"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg><span class="follow-sync-lbl">СИНХР.</span></button>
       <div style="background:transparent;padding:4px 8px;text-align:center;">
         <div style="font-size:8px;color:#888;font-family:'Golos Text',sans-serif;font-weight:600;">KEY</div>
         <div id="lftKey" style="font-size:13px;font-weight:700;color:#fff;"></div>
@@ -7901,6 +7906,9 @@ if('serviceWorker' in navigator){
 #liveOverlay{display:none;}
 #liveOverlay.open{display:flex!important;}
 #liveFullTab{display:none;}
+.follow-sync-btn{display:none;align-items:center;gap:5px;height:26px;padding:0 9px;border-radius:7px;border:1px solid #2dd4bf;background:rgba(45,212,191,0.08);color:#2dd4bf;font-family:'Golos Text',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;cursor:pointer;flex-shrink:0;}
+.follow-sync-btn.off{border-color:#33333a;background:none;color:#666;}
+body.live-follower .follow-sync-btn{display:inline-flex;}
 #liveFullTab.open{display:flex!important;}
 .lc{background:var(--bg);border-radius:8px;padding:8px 12px;margin-bottom:2px;border-left:2px solid transparent;position:relative;display:flex;flex-direction:column;justify-content:center;}
 .lc.active{border-left:2px solid #fff;background:rgba(255,255,255,0.04);}
@@ -7971,6 +7979,46 @@ body.live-follower #livePlayerPrev,body.live-follower #livePlayerNext{pointer-ev
    view   — участник: следует за мастером, видит текст/аккорды, без звука в колонки
    Роль хранится в памяти (не в Firebase) — выбирается каждый раз при входе в Live */
 var liveDeviceRole='view'; // по умолчанию
+// Уникальный id этого устройства (у телефона и MacBook одного человека аккаунт общий)
+var DEVICE_ID=(function(){var k='bandlist_deviceId',v=null;try{v=localStorage.getItem(k);}catch(e){}
+  if(!v){v='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem(k,v);}catch(e){}}return v;})();
+var _liveAutoJoined=false;
+function _claimLiveMaster(){
+  if(!db||!currentGroupId)return;
+  var ref=db.ref('groups/'+currentGroupId+'/liveMaster');
+  ref.set({uid:currentUser?currentUser.uid:'',dev:DEVICE_ID,ts:firebase.database.ServerValue.TIMESTAMP}).catch(function(){});
+  // Закрыли приложение / пропал интернет — запись исчезнет сама, ведомые выйдут из Live
+  try{ref.onDisconnect().remove();}catch(e){}
+}
+function _releaseLiveMaster(){
+  if(!db||!currentGroupId)return;
+  var ref=db.ref('groups/'+currentGroupId+'/liveMaster');
+  ref.once('value').then(function(sn){var v=sn.val();if(v&&v.dev===DEVICE_ID)ref.remove();}).catch(function(){});
+  try{ref.onDisconnect().cancel();}catch(e){}
+}
+// Мастер начал/закончил Live на другом устройстве → ведомые входят/выходят сами,
+// без единого нажатия (если на устройстве включена «СИНХР.»)
+function _onLiveMasterChange(v){
+  var other=!!(v&&v.dev&&v.dev!==DEVICE_ID&&(!v.ts||Math.abs(Date.now()-v.ts)<12*3600*1000));
+  if(other){
+    if(liveActive&&liveDeviceRole==='master'){ // мастером стало другое устройство — уступаем
+      liveDeviceRole='view';updateDeviceRoleBadge();updateLiveSyncFollowerUI();
+      try{db.ref('groups/'+currentGroupId+'/liveMaster').onDisconnect().cancel();}catch(e){}
+      return;
+    }
+    if(!liveActive&&typeof followMaster!=='undefined'&&followMaster&&currentGroupId){
+      liveDeviceRole='view';
+      window._autoLiveJoin=true;
+      try{toggleLiveMode();}finally{window._autoLiveJoin=false;}
+      _liveAutoJoined=true;
+    }
+  } else if(liveActive&&_liveAutoJoined&&liveDeviceRole!=='master'&&followMaster){
+    // Мастер вышел из Live — выходим и мы
+    var lft=document.getElementById('liveFullTab');
+    if(lft&&lft.classList.contains('open'))closeLiveFullTab();
+    toggleLiveMode();
+  }
+}
 
 function openDeviceRoleSheet(){
   updateDeviceRoleSheetLang();
@@ -8009,17 +8057,10 @@ function setDeviceRole(role){
   updateDeviceRoleBadge();
   updateDeviceRoleSheetActive();
   // Если стал мастером — регистрируемся в Firebase чтобы вытеснить предыдущего мастера
-  if(role==='master'&&db&&currentGroupId){
-    var uid=currentUser?currentUser.uid:'anon_'+Math.random().toString(36).slice(2);
-    db.ref('groups/'+currentGroupId+'/liveMaster').set({uid:uid,ts:firebase.database.ServerValue.TIMESTAMP});
-  }
-  // Если был мастером и отказался — убираем запись
-  if(role!=='master'&&db&&currentGroupId&&currentUser){
-    db.ref('groups/'+currentGroupId+'/liveMaster').once('value').then(function(s){
-      var v=s.val();
-      if(v&&v.uid===currentUser.uid) db.ref('groups/'+currentGroupId+'/liveMaster').remove();
-    });
-  }
+  if(role==='master') _claimLiveMaster();
+  // Если был мастером и отказался — убираем запись (сравниваем УСТРОЙСТВО, а не аккаунт:
+  // у одного человека телефон и MacBook — это один аккаунт, но разные устройства)
+  if(role!=='master') _releaseLiveMaster();
   closeDeviceRoleSheet();
   updateLiveSyncFollowerUI();
 }
@@ -8263,6 +8304,27 @@ var LiveSync={
 };
 
 function serverNowMs(){return Date.now()+LiveSync.offsetMs;}
+// Кнопка «СИНХР.» на ведомом устройстве: включена — экран и прокрутка повторяют мастера;
+// выключена — песня и время остаются общими, а вкладку и прокрутку музыкант выбирает сам.
+var followMaster=true;
+try{followMaster=localStorage.getItem('bandlist_followMaster')!=='0';}catch(e){}
+function renderFollowSyncBtns(){
+  var en=LANG==='en';
+  document.querySelectorAll('.follow-sync-btn').forEach(function(b){
+    b.classList.toggle('off',!followMaster);
+    var l=b.querySelector('.follow-sync-lbl');if(l)l.textContent=followMaster?(en?'SYNC':'СИНХР.'):(en?'SYNC OFF':'СИНХР. ВЫКЛ');
+    b.title=followMaster?(en?'Following master — tap to look on your own':'Повторяет мастера — нажми, чтобы смотреть самому'):(en?'Tap to follow master again':'Нажми, чтобы снова повторять мастера');
+  });
+}
+function toggleFollowMaster(){
+  followMaster=!followMaster;
+  try{localStorage.setItem('bandlist_followMaster',followMaster?'1':'0');}catch(e){}
+  renderFollowSyncBtns();
+  if(typeof showToast==='function')showToast(followMaster?(LANG==='en'?'Following master':'Синхронизация с мастером включена'):(LANG==='en'?'Sync off — browse freely':'Синхронизация выключена — смотри сам'));
+  // Включили обратно — сразу догоняем, что сейчас у мастера
+  if(followMaster&&LiveSync.state){_lftApplyRemoteView(LiveSync.state,'__force');_lftApplyRemoteScroll(LiveSync.state);}
+}
+setTimeout(renderFollowSyncBtns,0);
 
 /* ---- Зеркалирование полноэкранного текста: мастер → ведомые ----
    Мастер при открытии/закрытии текста/формы/заметок пишет в liveSync поле view
@@ -8411,8 +8473,10 @@ function onLiveSyncUpdate(v){
   if(v.playing!==prevPlaying||v.startTs!==prevStartTs||v.uniqueKey!==prevKey){
     startSyncClick();
   }
-  _lftApplyRemoteView(v,prevView);
-  _lftApplyRemoteScroll(v);
+  if(followMaster){
+    _lftApplyRemoteView(v,prevView);
+    _lftApplyRemoteScroll(v);
+  }
   if(!LiveSync.rafId)LiveSync.rafId=requestAnimationFrame(syncVisualLoop);
 }
 
@@ -8972,7 +9036,8 @@ function toggleLiveMode(){
     updateLiveSyncFollowerUI(); // на случай если роль осталась от прошлого захода — пересчитываем сразу, не дожидаясь выбора
     logEvent('live_session_started',{has_group:!!currentGroupId});
     // Показываем выбор роли при каждом входе в Live (если есть группа)
-    if(currentGroupId) setTimeout(openDeviceRoleSheet, 300);
+    if(currentGroupId&&!window._autoLiveJoin) setTimeout(openDeviceRoleSheet, 300);
+    if(liveDeviceRole==='master') _claimLiveMaster();
   } else {
     if(btn){
       btn.classList.remove('active-live');
@@ -8998,6 +9063,8 @@ function toggleLiveMode(){
     liveActiveSongIdx=-1;
     detachLiveSync();
     document.body.classList.remove("live-follower");
+    if(liveDeviceRole==='master') _releaseLiveMaster();
+    _liveAutoJoined=false;
   }
 }
 
@@ -9971,6 +10038,7 @@ function toggleLftScroll(forcedSongId){
   // прибавки (меньше пикселя) на компьютере просто терялись — отсюда и была
   // «не та скорость» на ноутбуке.
   var _posF=c?c.scrollTop:0;
+  var _wasSynced=false; // текст уже ехал вместе с треком по таймкодам
   var _lastTs=performance.now();
   var _songDur=lftSongDurationSec(forcedSongId!=null?forcedSongId:lftCurrentSongId);
   lftScrollInterval=setInterval(function(){
@@ -9998,6 +10066,7 @@ function toggleLftScroll(forcedSongId){
           targetPos=startPos+(endPos-startPos)*progress;
         }
         b.scrollTop=Math.max(0,targetPos);
+        _posF=b.scrollTop;_wasSynced=true;
         if(curIdx!==lastIdx){
           lastIdx=curIdx;
           var navIdx=allLftSecs.indexOf(sections[curIdx].el);
@@ -10006,6 +10075,9 @@ function toggleLftScroll(forcedSongId){
         }
       }
     } else {
+      // Песня с таймкодами, трек остановили (СТОП) — текст замирает на том же месте,
+      // а не прыгает в начало. Запустят трек снова — поедет дальше по таймкодам.
+      if(_wasSynced){_posF=b.scrollTop;return;}
       // Неразмеченная песня: равномерно, за длину песни × множитель кнопок -/+
       var maxScroll=b.scrollHeight-b.clientHeight;
       if(maxScroll<=0)return;
