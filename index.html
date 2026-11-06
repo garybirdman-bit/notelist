@@ -11,7 +11,8 @@
   (function () {
     try {
       var theme = localStorage.getItem('theme') || 'light';
-      if (theme === 'dark' || theme === 'strict') document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'dark') theme = 'strict';
+      if (theme === 'strict') document.documentElement.setAttribute('data-theme', theme);
     } catch (e) {}
   })();
 </script>
@@ -20,11 +21,6 @@
     --bg: #F4E8D0; --bg-elevated: #F4E8D0; --line: #E0D6C3;
     --text: #2E2A22; --text-dim: #8A8069; --accent: #4E6B45; --warn: #B5654B;
     --card: #4E6B45;
-  }
-  html[data-theme="dark"] {
-    --bg: #211C16; --bg-elevated: #2B251D; --line: #3E362A;
-    --text: #F3E9D2; --text-dim: #A99A7C; --accent: #5E8153; --warn: #C97862;
-    --card: #5E8153;
   }
   html[data-theme="strict"] {
     --bg: #17181B; --bg-elevated: #202226; --line: #2E3136;
@@ -36,11 +32,11 @@
   html[data-theme="strict"] .clip-card.drag-chosen { box-shadow: 4px 10px 22px rgba(0,0,0,0.55); }
   html[data-theme="strict"] .clip-text { color: #F4F1EA; }
   html[data-theme="strict"] .clip-tagname { color: rgba(244,241,234,0.92); }
-  /* Строгая тема — отдельный корпоративный шрифт вместо фирменного засечкового курсива */
-  html[data-theme="strict"] #splashScreen span,
-  html[data-theme="strict"] #themeLabel,
-  html[data-theme="strict"] .sheet-title,
-  html[data-theme="strict"] #loginBrandTitle {
+  /* Единый шрифт во всех темах (без засечек и наклона) */
+  #splashScreen span,
+  #themeLabel,
+  .sheet-title,
+  #loginBrandTitle {
     font-family: -apple-system, "Segoe UI", Roboto, sans-serif !important;
     font-style: normal !important;
     font-weight: 800 !important;
@@ -680,7 +676,7 @@
     ru: {
       settingsTitle: "Настройки", viewToggleTitle: "Вид: сетка/список", allThemes: "Все темы",
       searchPlaceholder: "Поиск…", editTitle: "Редактировать", pinAction: "Закрепить", unpinAction: "Открепить",
-      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)", descPlaceholder: "Описание (необязательно)… можно с {переменными}", signInGoogle: "Войти через Google", loginError: "Ошибка входа: ", themeSettingsLabel: "Тема оформления", themeLight: "Светлая", themeDark: "Тёмная", themeStrict: "Строгая",
+      duplicateAction: "Дублировать", titlePlaceholder: "Название (необязательно)", descPlaceholder: "Описание (необязательно)… можно с {переменными}", signInGoogle: "Войти через Google", loginError: "Ошибка входа: ", themeSettingsLabel: "Тема оформления", themeLight: "Светлая", themeStrict: "Тёмная",
       textPlaceholder: "Текст ответа… можно с {переменными}", themeFieldLabel: "Тема", sectionFieldLabel: "Раздел", textRequired: "Введите текст ответа — без него карточку сохранить нельзя",
       save: "Сохранить", deleteAction: "Удалить", fillTitle: "Заполни перед копированием", copyAction: "Скопировать",
       settingsSheetTitle: "Настройки", languageLabel: "Язык", newThemeTitle: "Новая тема",
@@ -711,7 +707,7 @@
     en: {
       settingsTitle: "Settings", viewToggleTitle: "View: grid/list", allThemes: "All themes",
       searchPlaceholder: "Search…", editTitle: "Edit", pinAction: "Pin", unpinAction: "Unpin",
-      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)", descPlaceholder: "Description (optional)… you can use {variables}", signInGoogle: "Sign in with Google", loginError: "Sign-in error: ", themeSettingsLabel: "Appearance", themeLight: "Light", themeDark: "Dark", themeStrict: "Strict",
+      duplicateAction: "Duplicate", titlePlaceholder: "Title (optional)", descPlaceholder: "Description (optional)… you can use {variables}", signInGoogle: "Sign in with Google", loginError: "Sign-in error: ", themeSettingsLabel: "Appearance", themeLight: "Light", themeStrict: "Dark",
       textPlaceholder: "Reply text… you can use {variables}", themeFieldLabel: "Theme", sectionFieldLabel: "Section", textRequired: "Enter the reply text — a card can't be saved without it",
       save: "Save", deleteAction: "Delete", fillTitle: "Fill in before copying", copyAction: "Copy",
       settingsSheetTitle: "Settings", languageLabel: "Language", newThemeTitle: "New theme",
@@ -742,7 +738,7 @@
     es: {
       settingsTitle: "Ajustes", viewToggleTitle: "Vista: cuadrícula/lista", allThemes: "Todos los temas",
       searchPlaceholder: "Buscar…", editTitle: "Editar", pinAction: "Fijar", unpinAction: "Quitar fijado",
-      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)", descPlaceholder: "Descripción (opcional)… puedes usar {variables}", signInGoogle: "Iniciar sesión con Google", loginError: "Error al iniciar sesión: ", themeSettingsLabel: "Apariencia", themeLight: "Claro", themeDark: "Oscuro", themeStrict: "Estricto",
+      duplicateAction: "Duplicar", titlePlaceholder: "Título (opcional)", descPlaceholder: "Descripción (opcional)… puedes usar {variables}", signInGoogle: "Iniciar sesión con Google", loginError: "Error al iniciar sesión: ", themeSettingsLabel: "Apariencia", themeLight: "Claro", themeStrict: "Oscuro",
       textPlaceholder: "Texto de la respuesta… puedes usar {variables}", themeFieldLabel: "Tema", sectionFieldLabel: "Sección", textRequired: "Escribe el texto de la respuesta — sin él no se puede guardar la tarjeta",
       save: "Guardar", deleteAction: "Eliminar", fillTitle: "Completa antes de copiar", copyAction: "Copiar",
       settingsSheetTitle: "Ajustes", languageLabel: "Idioma", newThemeTitle: "Nuevo tema",
@@ -913,7 +909,7 @@
   function migrateStrictPalette() {
     if (currentTheme !== 'strict') return;
         categories.forEach((cat) => {
-      const target = STRICT_LEGACY_TO_CURRENT[cat.color];
+      const target = (legacyDark ? WARM_TO_STRICT_MAP[cat.color] : null) || STRICT_LEGACY_TO_CURRENT[cat.color];
       if (target && target !== cat.color) { updateDoc(doc(db, 'users', currentUser.uid, 'categories', cat.id), { color: target }).catch((err) => console.error('Миграция цвета не удалась:', err)); }
     });
   }
@@ -1640,6 +1636,7 @@
     $('editTitleInput').placeholder = t('titlePlaceholder');
     $('editSheetInput').placeholder = t('textPlaceholder');
     $('themeFieldLabel').textContent = t('themeFieldLabel');
+    try { $('themeValue').innerHTML = `${t('theme' + currentTheme[0].toUpperCase() + currentTheme.slice(1))} <span>›</span>`; renderThemePicker(); } catch (e) { /* тема ещё не инициализирована при первом вызове */ }
     $('sectionFieldLabel').textContent = t('sectionFieldLabel');
     $('editSheetSaveLabel').textContent = t('save');
     $('editDeleteLabel').textContent = t('deleteAction');
@@ -2134,10 +2131,12 @@
 
   const THEMES = [
     { code: 'light', key: 'themeLight', color: '#F4E8D0', textColor: '#2E2A22' },
-    { code: 'dark', key: 'themeDark', color: '#211C16', textColor: '#F3E9D2' },
     { code: 'strict', key: 'themeStrict', color: '#17181B', textColor: '#D0896A' },
   ];
-  const THEME_BG_COLOR = { light: '#F4E8D0', dark: '#211C16', strict: '#17181B' };
+  const THEME_BG_COLOR = { light: '#F4E8D0', strict: '#17181B' };
+  // Старая «Тёмная» (коричневая) удалена: такие пользователи переходят на новую тёмную (бывш. «Строгая»)
+  let legacyDark = false;
+  if (localStorage.getItem('theme') === 'dark') { localStorage.setItem('theme', 'strict'); legacyDark = true; }
   let currentTheme = localStorage.getItem('theme') || 'light';
   function renderThemePicker() {
     $('themePickGrid').innerHTML = THEMES.map((th) => `
@@ -2161,6 +2160,7 @@
     }
   }
   function setTheme(code, isUserAction) {
+    if (code === 'dark') code = 'strict';
     if (!THEME_BG_COLOR[code]) code = 'light';
     const oldCode = currentTheme;
     currentTheme = code;
